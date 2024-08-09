@@ -46,7 +46,7 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestUri = request.getRequestURI();
         String authorization = request.getHeader("Authorization");
-
+        jwtUtil.checkToken(authorization, ACCESS);
         // 허용된 URL 패턴인지 확인
         if (isPermitAllUrl(requestUri)) {
             filterChain.doFilter(request,response);
@@ -55,7 +55,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String token = authorization.split(" ")[1];
 
-        JwtUserDto jwtUserDto = jwtService.getUserDtoFromToken(token, ACCESS);
+        JwtUserDto jwtUserDto = jwtUtil.getUserDtoFromToken(token, ACCESS);
         Authentication authToken = new UsernamePasswordAuthenticationToken(jwtUserDto, null, jwtUserDto.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authToken);
         filterChain.doFilter(request, response);
@@ -64,33 +64,4 @@ public class JwtFilter extends OncePerRequestFilter {
     private boolean isPermitAllUrl(String requestUri) {
         return permitAllUrls.stream().anyMatch(pattern -> pathMatcher.match(pattern, requestUri));
     }
-
-    //TODO JwtService에서랑 중복 -> JwtUtil로 빼기
-    private void checkCategory(String token) {
-        String category = jwtUtil.getCategory(token);
-        if (!category.equals("access")) {
-            JwtExceptionErrorCode errorCode = JwtExceptionErrorCode.WRONG_JWT_TOKEN_TYPE;
-            errorCode.addTokenTypeInfoToMessage("access");
-            throw new JwtException(errorCode);
-        }
-    }
-
-    private void checkExpired(String token) {
-        try {
-            jwtUtil.isExpired(token);
-        } catch (ExpiredJwtException e) {
-            JwtExceptionErrorCode errorCode = JwtExceptionErrorCode.EXPIRED_JWT_TOKEN;
-            errorCode.addTokenTypeInfoToMessage("access");
-            throw new JwtException(errorCode);
-        }
-    }
-
-    private void checkHeader(String authorization) {
-        if (authorization == null) {
-            throw new JwtException(JwtExceptionErrorCode.NO_JWT_TOKEN_IN_HEADER);
-        } else if (!authorization.startsWith("Bearer ")) {
-            throw new JwtException(JwtExceptionErrorCode.NO_BEARER_TYPE);
-        }
-    }
-
 }

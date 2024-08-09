@@ -1,10 +1,12 @@
 package com.mapu.global.jwt;
+import com.mapu.domain.user.domain.UserRole;
 import com.mapu.global.jwt.dao.JwtRedisRepository;
 import com.mapu.global.jwt.domain.JwtRedis;
 import com.mapu.global.jwt.dto.JwtUserDto;
 import com.mapu.global.jwt.exception.errorcode.JwtExceptionErrorCode;
 import com.mapu.global.jwt.exception.JwtException;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Value;
@@ -105,5 +107,44 @@ public class JwtUtil {
         String token = createRefreshToken(jwtUserDto);
         jwtRedisRepository.save(new JwtRedis(token, refreshExpiration));
         return createCookie(REFRESH, token, refreshExpiration);
+    }
+
+
+    public void checkToken(String token, String tokenType) {
+
+        if (token == null) {
+            JwtExceptionErrorCode errorCode = JwtExceptionErrorCode.NO_JWT_TOKEN;
+            errorCode.addTokenTypeInfoToMessage(tokenType);
+            throw new JwtException(errorCode);
+        }
+
+        if (tokenType.equals(ACCESS) && !token.startsWith("Bearer ")) {
+            throw new JwtException(JwtExceptionErrorCode.NO_BEARER_TYPE);
+        }
+
+        //expired check
+        try {
+            isExpired(token);
+        } catch (ExpiredJwtException e) {
+            JwtExceptionErrorCode errorCode = JwtExceptionErrorCode.EXPIRED_JWT_TOKEN;
+            errorCode.addTokenTypeInfoToMessage(tokenType);
+            throw new JwtException(errorCode);
+        }
+
+        // 토큰 type 확인 (발급시 페이로드에 명시)
+        String category = getCategory(token);
+        if (!category.equals(tokenType)) {
+            JwtExceptionErrorCode errorCode = JwtExceptionErrorCode.WRONG_JWT_TOKEN_TYPE;
+            errorCode.addTokenTypeInfoToMessage(tokenType);
+            throw new JwtException(errorCode);
+        }
+    }
+
+
+    public JwtUserDto getUserDtoFromToken(String token, String tokenType) {
+        checkToken(token, tokenType);
+        return JwtUserDto.builder().name(Long.valueOf(getName(token)))
+                .role(UserRole.valueOf(getRole(token)))
+                .build();
     }
 }
