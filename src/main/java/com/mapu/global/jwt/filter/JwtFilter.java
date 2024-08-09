@@ -6,6 +6,7 @@ import com.mapu.global.jwt.dto.JwtUserDto;
 import com.mapu.global.jwt.exception.JwtException;
 import com.mapu.global.jwt.exception.errorcode.JwtExceptionErrorCode;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +20,8 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.security.SignatureException;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.mapu.global.jwt.JwtUtil.ACCESS;
@@ -28,16 +31,32 @@ import static com.mapu.global.jwt.JwtUtil.ACCESS;
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final JwtUtil jwtUtil;
+    private final static String EXCEPTION = "exception";
+    private final static String TOKEN_MALFORMED = "malformed";
+    private final static String TOKEN_EXPIRED = "expired";
+    private final static String TOKEN_INVALID = "invalid";
+    private final static String TOKEN_NULL = "null";
+    private final static String BEARER = "bearer";
 
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
-
-    // 허용된 URL 패턴 리스트
-    private final List<String> permitAllUrls = List.of(
+    //전체 허용된 URL 패턴 리스트
+    private final List<String> PERMIT_ALL_URL_LIST = List.of(
             "/user/signin/**",
-            "/user/signup",
-            "/user/delete",
+            "/user/signup/**",
+            "/map",
+            "/search/map",
             "/jwt/reissue",
-            "/error"
+            "/error",
+            "/home/keyword"
+    );
+    //익명사용자 구분 필요 URL 패턴 리스트
+    private final List<String> ANONYMOUS_URL_LIST = List.of(
+            "/home",
+            "/user/maps",
+            "/home/editor"
+    );
+    //GET 메서드만 허용 URL 패턴 리스트
+    private final List<String> ONLY_GET_ANONYMOUS_URL_LIST = List.of(
+            "/user"
     );
 
     @Override
@@ -45,49 +64,49 @@ public class JwtFilter extends OncePerRequestFilter {
         String requestUri = request.getRequestURI();
         String authorization = request.getHeader("Authorization");
 
-        // 허용된 URL 패턴인지 확인
-        if (isPermitAllUrl(requestUri)) {
+        if (PERMIT_ALL_URL_LIST.contains(requestUri)) {
             filterChain.doFilter(request,response);
             return;
         }
+        if(ANONYMOUS_URL_LIST.contains(requestUri)){
+            if(authorization.isEmpty()){
+                //익명 사용자
+                filterChain.doFilter(request,response);
+                return;
+            }
+        }
+        if(ONLY_GET_ANONYMOUS_URL_LIST.contains(requestUri)){
+             if(authorization.isEmpty() && request.getMethod().equals("GET")){
+                 filterChain.doFilter(request,response);
+                 return;
+             }
+        }
+
+        if(authorization.isEmpty()) request.setAttribute(EXCEPTION,TOKEN_NULL);
+        if(!authorization.startsWith("Bearer ")) request.setAttribute(EXCEPTION,BEARER);
 
         String token = authorization.split(" ")[1];
+        //TODO: 로그아웃 블랙리스트 관리 및 예외처리 필요
+        //유효한 토큰인지 검증
+        try{
+            jwtUtil.validateToken(token);
+        }catch (MalformedJwtException e){
+            request.setAttribute(EXCEPTION,TOKEN_MALFORMED);
+            filterChain.doFilter(request, response);
+            return;
+        }catch (ExpiredJwtException e){
+            request.setAttribute(EXCEPTION,TOKEN_EXPIRED);
+            filterChain.doFilter(request, response);
+            return;
+        }catch (Exception e){
+            request.setAttribute(EXCEPTION,TOKEN_INVALID);
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         JwtUserDto jwtUserDto = jwtService.getUserDtoFromToken(token, ACCESS);
         Authentication authToken = new UsernamePasswordAuthenticationToken(jwtUserDto, null, jwtUserDto.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authToken);
         filterChain.doFilter(request, response);
     }
-
-    private boolean isPermitAllUrl(String requestUri) {
-        return permitAllUrls.stream().anyMatch(pattern -> pathMatcher.match(pattern, requestUri));
-    }
-
-    private void checkCategory(String token) {
-        String category = jwtUtil.getCategory(token);
-        if (!category.equals("access")) {
-            JwtExceptionErrorCode errorCode = JwtExceptionErrorCode.INVALID_JWT_TOKEN;
-            errorCode.addTokenTypeInfoToMessage("access");
-            throw new JwtException(errorCode);
-        }
-    }
-
-    private void checkExpired(String token) {
-        try {
-            jwtUtil.isExpired(token);
-        } catch (ExpiredJwtException e) {
-            JwtExceptionErrorCode errorCode = JwtExceptionErrorCode.EXPIRED_JWT_TOKEN;
-            errorCode.addTokenTypeInfoToMessage("access");
-            throw new JwtException(errorCode);
-        }
-    }
-
-    private void checkHeader(String authorization) {
-        if (authorization == null) {
-            throw new JwtException(JwtExceptionErrorCode.NO_JWT_TOKEN_IN_HEADER);
-        } else if (!authorization.startsWith("Bearer ")) {
-            throw new JwtException(JwtExceptionErrorCode.NO_BEARER_TYPE);
-        }
-    }
-
 }

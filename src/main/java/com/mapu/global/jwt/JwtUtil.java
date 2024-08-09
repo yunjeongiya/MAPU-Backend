@@ -55,6 +55,11 @@ public class JwtUtil {
         return expiration.before(now);
     }
 
+    public boolean validateToken(String token){
+        Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
+        return true;
+    }
+
     public String createJwt(String category, String name, String role, Long expiredMs) {
         Date expiration = new Date(System.currentTimeMillis() + expiredMs);
         Date now = new Date(System.currentTimeMillis());
