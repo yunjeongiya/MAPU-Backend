@@ -29,6 +29,7 @@ import java.util.List;
 public class MapController {
     private final MapService mapService;
 
+
     /**
      * 탐색화면 로그인 여부 확인
      */
@@ -105,9 +106,18 @@ public class MapController {
     }
 
     /**
+     * 맵 편집 페이지 접속
+     */
+    @GetMapping("/{mapId}")
+    public BaseResponse<Void> accessMap(@AuthenticationPrincipal JwtUserDto jwtUserDto,
+                                        @PathVariable("mapId") Long mapId) {
+        return new BaseResponse();
+    }
+
+    /**
      * 타유저의 지도데이터 조회
      */
-    @GetMapping("/{otherUserId}")
+    @GetMapping("/list/{otherUserId}")
     public BaseResponse getOtherUserMap(@PathVariable("otherUserId") long otherUserId,
                                         Pageable pageable) {
         List<MapListResponseDTO> response = mapService.getOtherUserMapList(otherUserId, pageable);

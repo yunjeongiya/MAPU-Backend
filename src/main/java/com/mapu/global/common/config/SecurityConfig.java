@@ -77,9 +77,11 @@ public class SecurityConfig {
                         .requestMatchers("/search/map").permitAll()
                         .requestMatchers("/jwt/reissue").permitAll()
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers("/map").permitAll()
+                        .requestMatchers("/map/logined", "/map/list/*", "/map/search").permitAll()
+                        .requestMatchers("/map/bookmark", "/map/create").authenticated()
                         .requestMatchers("/home/editor").permitAll()
                         .requestMatchers("/home/keyword").permitAll()
+                        .requestMatchers("/map/*").access(new MapAuthorizationManager())
                         .anyRequest().authenticated());
 
         //세션 설정 : STATELESS
