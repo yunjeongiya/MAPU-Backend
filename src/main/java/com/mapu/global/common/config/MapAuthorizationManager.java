@@ -35,6 +35,7 @@ public class MapAuthorizationManager implements AuthorizationManager<RequestAuth
 
         boolean access = mapUserRoleService.hasAuthority(mapId, userId);
 
+        //TODO 여기서 권한 없음 예외 처리 직접 해 줘야 할지?
         return new AuthorizationDecision(access);
     }
 }

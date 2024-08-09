@@ -45,14 +45,14 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestUri = request.getRequestURI();
-        String authorization = request.getHeader("Authorization");
-        jwtUtil.checkToken(authorization, ACCESS);
         // 허용된 URL 패턴인지 확인
         if (isPermitAllUrl(requestUri)) {
             filterChain.doFilter(request,response);
             return;
         }
 
+        String authorization = request.getHeader("Authorization");
+        jwtUtil.checkToken(authorization, ACCESS);
         String token = authorization.split(" ")[1];
 
         JwtUserDto jwtUserDto = jwtUtil.getUserDtoFromToken(token, ACCESS);
