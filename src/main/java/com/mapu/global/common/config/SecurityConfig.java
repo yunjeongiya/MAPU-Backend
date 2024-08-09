@@ -1,5 +1,6 @@
 package com.mapu.global.common.config;
 
+import com.mapu.domain.map.application.MapUserRoleService;
 import com.mapu.global.jwt.JwtUtil;
 import com.mapu.global.jwt.filter.JwtExceptionFilter;
 import com.mapu.global.jwt.filter.JwtFilter;
@@ -28,6 +29,8 @@ import java.util.List;
 public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final JwtService jwtService;
+    private final MapUserRoleService mapUserRoleService;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         //csrf disable
@@ -77,11 +80,11 @@ public class SecurityConfig {
                         .requestMatchers("/search/map").permitAll()
                         .requestMatchers("/jwt/reissue").permitAll()
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers("/map/logined", "/map/list/*", "/map/search").permitAll()
+                        .requestMatchers("/map/logined", "/map/list/**", "/map/search").permitAll()
                         .requestMatchers("/map/bookmark", "/map/create").authenticated()
                         .requestMatchers("/home/editor").permitAll()
                         .requestMatchers("/home/keyword").permitAll()
-                        .requestMatchers("/map/*").access(new MapAuthorizationManager())
+                        .requestMatchers("/map/**").access(new MapAuthorizationManager(mapUserRoleService))
                         .anyRequest().authenticated());
 
         //세션 설정 : STATELESS
