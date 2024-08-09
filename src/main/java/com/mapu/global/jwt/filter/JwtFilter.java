@@ -65,10 +65,11 @@ public class JwtFilter extends OncePerRequestFilter {
         return permitAllUrls.stream().anyMatch(pattern -> pathMatcher.match(pattern, requestUri));
     }
 
+    //TODO JwtService에서랑 중복 -> JwtUtil로 빼기
     private void checkCategory(String token) {
         String category = jwtUtil.getCategory(token);
         if (!category.equals("access")) {
-            JwtExceptionErrorCode errorCode = JwtExceptionErrorCode.INVALID_JWT_TOKEN;
+            JwtExceptionErrorCode errorCode = JwtExceptionErrorCode.WRONG_JWT_TOKEN_TYPE;
             errorCode.addTokenTypeInfoToMessage("access");
             throw new JwtException(errorCode);
         }

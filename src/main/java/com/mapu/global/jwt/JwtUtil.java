@@ -2,9 +2,11 @@ package com.mapu.global.jwt;
 import com.mapu.global.jwt.dao.JwtRedisRepository;
 import com.mapu.global.jwt.domain.JwtRedis;
 import com.mapu.global.jwt.dto.JwtUserDto;
+import com.mapu.global.jwt.exception.errorcode.JwtExceptionErrorCode;
+import com.mapu.global.jwt.exception.JwtException;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -36,22 +38,30 @@ public class JwtUtil {
         this.jwtRedisRepository = jwtRedisRepository;
     }
 
+    private Claims getPayload(String token) {
+        try {
+            return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+        } catch (Exception e) {
+            throw new JwtException(JwtExceptionErrorCode.INVALID_JWT_TOKEN);
+        }
+    }
+
     public String getCategory(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get(CATEGORY, String.class);
+        return getPayload(token).get(CATEGORY, String.class);
     }
 
     public String getName(String token) {
 
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get(NAME, String.class);
+        return getPayload(token).get(NAME, String.class);
     }
 
     public String getRole(String token) {
 
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get(ROLE, String.class);
+        return getPayload(token).get(ROLE, String.class);
     }
 
     public Boolean isExpired(String token) {
-        Date expiration = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration();
+        Date expiration = getPayload(token).getExpiration();
         Date now = new Date(System.currentTimeMillis());
         return expiration.before(now);
     }

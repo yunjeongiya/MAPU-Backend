@@ -40,7 +40,7 @@ public class JwtService {
         // 토큰 type 확인 (발급시 페이로드에 명시)
         String category = jwtUtil.getCategory(token);
         if (!category.equals(tokenType)) {
-            JwtExceptionErrorCode errorCode = JwtExceptionErrorCode.INVALID_JWT_TOKEN;
+            JwtExceptionErrorCode errorCode = JwtExceptionErrorCode.WRONG_JWT_TOKEN_TYPE;
             errorCode.addTokenTypeInfoToMessage(tokenType);
             throw new JwtException(errorCode);
         }
