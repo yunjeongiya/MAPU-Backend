@@ -1,5 +1,6 @@
 package com.mapu.global.jwt.filter;
 
+import com.mapu.global.common.response.BaseErrorResponse;
 import com.mapu.global.jwt.JwtUtil;
 import com.mapu.global.jwt.application.JwtService;
 import com.mapu.global.jwt.dto.JwtUserDto;
@@ -31,12 +32,6 @@ import static com.mapu.global.jwt.JwtUtil.ACCESS;
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final JwtUtil jwtUtil;
-    private final static String EXCEPTION = "exception";
-    private final static String TOKEN_MALFORMED = "malformed";
-    private final static String TOKEN_EXPIRED = "expired";
-    private final static String TOKEN_INVALID = "invalid";
-    private final static String TOKEN_NULL = "null";
-    private final static String BEARER = "bearer";
 
     //전체 허용된 URL 패턴 리스트
     private final List<String> PERMIT_ALL_URL_LIST = List.of(
@@ -62,28 +57,33 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestUri = request.getRequestURI();
+        log.info("requestUri: "+requestUri);
         String authorization = request.getHeader("Authorization");
 
-        if (PERMIT_ALL_URL_LIST.contains(requestUri)) {
+        if(isUrlPermitted(PERMIT_ALL_URL_LIST,requestUri)) {
             filterChain.doFilter(request,response);
             return;
         }
-        if(ANONYMOUS_URL_LIST.contains(requestUri)){
-            if(authorization.isEmpty()){
+        if(isUrlPermitted(ANONYMOUS_URL_LIST,requestUri)){
+            if(authorization==null){
                 //익명 사용자
                 filterChain.doFilter(request,response);
                 return;
             }
         }
-        if(ONLY_GET_ANONYMOUS_URL_LIST.contains(requestUri)){
-             if(authorization.isEmpty() && request.getMethod().equals("GET")){
+        if(isUrlPermitted(ONLY_GET_ANONYMOUS_URL_LIST,requestUri)){
+             if(authorization==null && request.getMethod().equals("GET")){
                  filterChain.doFilter(request,response);
                  return;
              }
         }
 
-        if(authorization.isEmpty()) request.setAttribute(EXCEPTION,TOKEN_NULL);
-        if(!authorization.startsWith("Bearer ")) request.setAttribute(EXCEPTION,BEARER);
+        if(authorization==null) {
+            throw new JwtException(JwtExceptionErrorCode.NO_JWT_TOKEN_IN_HEADER);
+        }
+        if(!authorization.startsWith("Bearer ")) {
+            throw new JwtException(JwtExceptionErrorCode.NO_BEARER_TYPE);
+        }
 
         String token = authorization.split(" ")[1];
         //TODO: 로그아웃 블랙리스트 관리 및 예외처리 필요
@@ -91,22 +91,34 @@ public class JwtFilter extends OncePerRequestFilter {
         try{
             jwtUtil.validateToken(token);
         }catch (MalformedJwtException e){
-            request.setAttribute(EXCEPTION,TOKEN_MALFORMED);
-            filterChain.doFilter(request, response);
-            return;
+            throw new JwtException(JwtExceptionErrorCode.MALFORMED_JWT_TOKEN);
         }catch (ExpiredJwtException e){
-            request.setAttribute(EXCEPTION,TOKEN_EXPIRED);
-            filterChain.doFilter(request, response);
-            return;
+            throw new JwtException(JwtExceptionErrorCode.EXPIRED_JWT_TOKEN);
         }catch (Exception e){
-            request.setAttribute(EXCEPTION,TOKEN_INVALID);
-            filterChain.doFilter(request, response);
-            return;
+            throw new JwtException(JwtExceptionErrorCode.INVALID_JWT_TOKEN);
         }
 
+        log.info("로그인 사용자");
         JwtUserDto jwtUserDto = jwtService.getUserDtoFromToken(token, ACCESS);
         Authentication authToken = new UsernamePasswordAuthenticationToken(jwtUserDto, null, jwtUserDto.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authToken);
         filterChain.doFilter(request, response);
     }
+
+
+    private boolean matchesPattern(String pattern,String requestUri) {
+        // **을 포함한 패턴을 정규식으로 변환
+        String regex = pattern.replace("**", ".*");
+        return requestUri.matches(regex);
+    }
+
+    public boolean isUrlPermitted(List<String> urlList,String requestUri) {
+        for (String pattern : urlList) {
+            if (matchesPattern(pattern, requestUri)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

@@ -1,7 +1,7 @@
 package com.mapu.global.common.config;
 
 import com.mapu.global.jwt.JwtUtil;
-import com.mapu.global.jwt.filter.JwtAuthenticationEntryPoint;
+import com.mapu.global.jwt.filter.JwtExceptionFilter;
 import com.mapu.global.jwt.filter.JwtFilter;
 import com.mapu.global.jwt.filter.JwtLogoutFilter;
 import com.mapu.global.jwt.application.JwtService;
@@ -60,14 +60,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers(WHITE_LIST).permitAll()
                         .requestMatchers(HttpMethod.GET,"/user").permitAll()
-                        .anyRequest().authenticated())
-                        .exceptionHandling((exception) ->
-                                exception.authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
+                        .anyRequest().authenticated());
 
         //JWTFilter 추가
         http
                 .addFilterBefore(new JwtFilter(jwtService,jwtUtil), UsernamePasswordAuthenticationFilter.class)
-                .addFilterAt(new JwtLogoutFilter(jwtService), LogoutFilter.class);
+                .addFilterAt(new JwtLogoutFilter(jwtService), LogoutFilter.class)
+                .addFilterBefore(new JwtExceptionFilter(), JwtFilter.class );
 
         //CORS 설정
         http

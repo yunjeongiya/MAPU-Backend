@@ -62,7 +62,7 @@ public class UserController {
 
     @GetMapping
     public BaseResponse<UserInfoResponseDTO> getUserInfo(@AuthenticationPrincipal JwtUserDto jwtUserDto){
-        UserInfoResponseDTO response = userService.getUserInfo(Long.parseLong(jwtUserDto.getName()));
+        UserInfoResponseDTO response = userService.getUserInfo(jwtUserDto);
         return new BaseResponse<>(response);
     }
 

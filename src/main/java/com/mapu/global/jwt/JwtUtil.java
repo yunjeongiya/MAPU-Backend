@@ -2,6 +2,7 @@ package com.mapu.global.jwt;
 import com.mapu.global.jwt.dao.JwtRedisRepository;
 import com.mapu.global.jwt.domain.JwtRedis;
 import com.mapu.global.jwt.dto.JwtUserDto;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,7 +57,12 @@ public class JwtUtil {
     }
 
     public boolean validateToken(String token){
-        Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
+        Claims payload = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        System.out.println("payload: "+ payload);
         return true;
     }
 
