@@ -72,7 +72,7 @@ public class SecurityConfig {
 
         //JWTFilter 추가
         http
-                .addFilterBefore(new JwtFilter(jwtService,jwtUtil), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
                 .addFilterAt(new JwtLogoutFilter(jwtService), LogoutFilter.class)
                 .addFilterBefore(new JwtExceptionFilter(), JwtFilter.class );
 

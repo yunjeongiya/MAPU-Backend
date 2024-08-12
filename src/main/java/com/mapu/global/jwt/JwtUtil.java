@@ -1,4 +1,5 @@
 package com.mapu.global.jwt;
+import com.mapu.domain.user.domain.UserRole;
 import com.mapu.global.jwt.dao.JwtRedisRepository;
 import com.mapu.global.jwt.domain.JwtRedis;
 import com.mapu.global.jwt.dto.JwtUserDto;
@@ -7,6 +8,7 @@ import com.mapu.global.jwt.exception.JwtException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -46,6 +48,10 @@ public class JwtUtil {
                     build().
                     parseSignedClaims(token).
                     getPayload();
+        } catch (MalformedJwtException e) {
+            throw new JwtException(JwtExceptionErrorCode.MALFORMED_JWT_TOKEN);
+        } catch (ExpiredJwtException e) {
+            throw new JwtException(JwtExceptionErrorCode.EXPIRED_JWT_TOKEN);
         } catch (Exception e) {
             throw new JwtException(JwtExceptionErrorCode.INVALID_JWT_TOKEN);
         }
@@ -114,15 +120,10 @@ public class JwtUtil {
 
 
     public void checkToken(String token, String tokenType) {
-
         if (token == null) {
             JwtExceptionErrorCode errorCode = JwtExceptionErrorCode.NO_JWT_TOKEN;
             errorCode.addTokenTypeInfoToMessage(tokenType);
             throw new JwtException(errorCode);
-        }
-
-        if (tokenType.equals(ACCESS) && !token.startsWith("Bearer ")) {
-            throw new JwtException(JwtExceptionErrorCode.NO_BEARER_TYPE);
         }
 
         //expired check
