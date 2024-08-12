@@ -1,5 +1,6 @@
 package com.mapu.global.common.config;
 
+import com.mapu.domain.map.application.MapUserRoleService;
 import com.mapu.global.jwt.JwtUtil;
 import com.mapu.global.jwt.filter.JwtExceptionFilter;
 import com.mapu.global.jwt.filter.JwtFilter;
@@ -29,6 +30,8 @@ import java.util.List;
 public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final JwtService jwtService;
+    private final MapUserRoleService mapUserRoleService;
+
 
     private final String[] WHITE_LIST = new String[]{
             "/user/signin/**",
@@ -38,7 +41,10 @@ public class SecurityConfig {
             "/jwt/reissue",
             "/error",
             "/home/editor",
-            "/home/keyword"
+            "/home/keyword",
+            "/map/logined",
+            "/map/list/**",
+            "/map/search"
     };
 
     @Bean
@@ -60,11 +66,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers(WHITE_LIST).permitAll()
                         .requestMatchers(HttpMethod.GET,"/user").permitAll()
+                        .requestMatchers("/map/bookmark", "/map/create").authenticated()
+                        .requestMatchers("/map/**").access(new MapAuthorizationManager(mapUserRoleService))
                         .anyRequest().authenticated());
 
         //JWTFilter 추가
         http
-                .addFilterBefore(new JwtFilter(jwtService,jwtUtil), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
                 .addFilterAt(new JwtLogoutFilter(jwtService), LogoutFilter.class)
                 .addFilterBefore(new JwtExceptionFilter(), JwtFilter.class );
 
