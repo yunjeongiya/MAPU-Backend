@@ -1,5 +1,4 @@
 package com.mapu.global.jwt;
-import com.mapu.domain.user.domain.UserRole;
 import com.mapu.global.jwt.dao.JwtRedisRepository;
 import com.mapu.global.jwt.domain.JwtRedis;
 import com.mapu.global.jwt.dto.JwtUserDto;
@@ -42,7 +41,11 @@ public class JwtUtil {
 
     private Claims getPayload(String token) {
         try {
-            return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+            return Jwts.parser().
+                    verifyWith(secretKey).
+                    build().
+                    parseSignedClaims(token).
+                    getPayload();
         } catch (Exception e) {
             throw new JwtException(JwtExceptionErrorCode.INVALID_JWT_TOKEN);
         }
