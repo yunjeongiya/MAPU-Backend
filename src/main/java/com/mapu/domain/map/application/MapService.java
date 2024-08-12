@@ -6,17 +6,20 @@ import com.mapu.domain.map.application.response.MapEditorResponseDTO;
 import com.mapu.domain.map.application.response.MapListResponseDTO;
 import com.mapu.domain.map.application.response.MapOwnerResponseDTO;
 import com.mapu.domain.map.dao.MapKeywordRepository;
+import com.mapu.domain.map.dao.MapUserBookmarkRepository;
 import com.mapu.domain.map.dao.MapRepository;
 import com.mapu.domain.map.dao.MapUserRoleRepository;
 import com.mapu.domain.map.domain.Map;
 import com.mapu.domain.map.domain.MapUserRole;
 import com.mapu.domain.map.domain.Role;
+import com.mapu.domain.map.domain.MapUserBookmark;
 import com.mapu.domain.map.exception.MapException;
 import com.mapu.domain.map.exception.errcode.MapExceptionErrorCode;
 import com.mapu.domain.user.dao.UserRepository;
 import com.mapu.domain.user.domain.User;
 import com.mapu.domain.user.exception.UserException;
 import com.mapu.domain.user.exception.errorcode.UserExceptionErrorCode;
+import com.mapu.domain.map.exception.errcode.MapExceptionErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,22 +39,25 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class MapService {
+
     private final MapRepository mapRepository;
     private final MapKeywordRepository keywordRepository;
     private final UserRepository userRepository;
     private final MapUserRoleRepository mapUserRoleRepository;
+    private final MapUserBookmarkRepository mapUserBookmarkRepository;
+
 
     public void checkLoginStatus(HttpServletRequest request) {
     }
 
-    public List<MapListResponseDTO> getMapList(String searchType, Pageable pageable) {
+    public List<MapListResponseDTO> getMapList(String searchType, Pageable pageable, String searchWord) {
         switch (searchType) {
             case "RANDOM": {
-                List<MapListResponseDTO> mapList = getMapListByRandom(pageable);
+                List<MapListResponseDTO> mapList = getMapListByRandom(pageable, searchWord);
                 return mapList;
             }
             case "DATE": {
-                List<MapListResponseDTO> mapList = getMapListByDate(pageable);
+                List<MapListResponseDTO> mapList = getMapListByDate(pageable, searchWord);
                 return mapList;
             }
             default:
@@ -59,14 +65,14 @@ public class MapService {
         }
     }
 
-    private List<MapListResponseDTO> getMapListByDate(Pageable pageable) {
-        List<Map> maps = mapRepository.findAllByOrderByCreatedAtDesc(pageable);
+    private List<MapListResponseDTO> getMapListByDate(Pageable pageable, String searchWord) {
+        List<Map> maps = mapRepository.findAllByOrderByCreatedAtDesc(searchWord,pageable);
         log.info("MapService GetMapListByDate - Retrieved {} map(s) from the database", maps.size());
         return maps.stream().map(this::mapConvertToDTO).collect(Collectors.toList());
     }
 
-    private List<MapListResponseDTO> getMapListByRandom(Pageable pageable) {
-        List<Map> maps = mapRepository.findAllByRandom(pageable);
+    private List<MapListResponseDTO> getMapListByRandom(Pageable pageable, String searchWord) {
+        List<Map> maps = mapRepository.findAllByRandom(searchWord, pageable);
         log.info("MapService GetMapListByRandom - Retrieved {} map(s) from the database", maps.size());
         return maps.stream().map(this::mapConvertToDTO).collect(Collectors.toList());
     }
@@ -91,10 +97,25 @@ public class MapService {
                 .title(map.getMapTitle())
                 .region(map.getAddress())
                 .description(map.getMapDescription())
-                .imageUrl(map.getPublishLink())
+                .imageUrl(map.getImageUrl())
                 .user(mapOwnerDTO)
                 .keyword(keywords)
                 .build();
+    }
+
+    public void addMapBookmark(long userId, Long mapId) {
+        User user = userRepository.findById(userId);
+        Map map = mapRepository.findById(mapId).orElseThrow(()-> new MapException(MapExceptionErrorCode.NOT_FOUND_MAP));
+        MapUserBookmark mapUserBookmark = MapUserBookmark.builder().user(user).map(map).build();
+        mapUserBookmarkRepository.save(mapUserBookmark);
+    }
+
+    public void removeMapBookmark(long userId, Long mapId) {
+        MapUserBookmark mapUserBookmark = mapUserBookmarkRepository.findByUserIdAndMapId(userId, mapId);
+        if (mapUserBookmark == null){
+            throw new MapException(MapExceptionErrorCode.NOT_FOUND_BOOKMARK);
+        }
+        mapUserBookmarkRepository.delete(mapUserBookmark);
     }
 
     public MapEditorListResponseDTO getEditorList(long mapId, int pageNumber, int pageSize) {
@@ -145,5 +166,12 @@ public class MapService {
                 .build();
 
         mapUserRoleRepository.save(mapUserRole);
+    }
+
+    public List<MapListResponseDTO> getOtherUserMapList(long otherUserId, Pageable pageable) {
+        List<Map> maps = mapRepository.findOtherUserMapsByUserId(otherUserId, pageable);
+        log.info("MapService getOtherUserMapList - Retrieved {} map(s) from the database", maps.size());
+        return maps.stream().map(this::mapConvertToDTO).collect(Collectors.toList());
+
     }
 }

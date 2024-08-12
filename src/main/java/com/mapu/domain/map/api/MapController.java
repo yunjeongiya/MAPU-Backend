@@ -13,12 +13,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -43,11 +43,12 @@ public class MapController {
      */
     @GetMapping("/search")
     public BaseResponse<List<MapListResponseDTO>> getMapList(
-            @RequestParam("searchType") String searchType,
+            @RequestParam(value = "searchType", defaultValue = "RANDOM") String searchType,
+            @RequestParam(value = "searchWord", defaultValue = "") String searchWord,
             final Pageable pageable) {
 
         log.info("MapController searchType: {}", searchType);
-        List<MapListResponseDTO> responseDTOList = mapService.getMapList(searchType.toUpperCase(), pageable);
+        List<MapListResponseDTO> responseDTOList = mapService.getMapList(searchType.toUpperCase(), pageable, searchWord);
         log.info("MapController getMapList - responseDTOList size: {}", responseDTOList.size());
         return new BaseResponse<>(responseDTOList);
     }
@@ -55,14 +56,18 @@ public class MapController {
     /**
      * 탐색화면 북마크 추가
      */
-    public BaseResponse addMapBookMark() {
+    @PostMapping("/bookmark")
+    public BaseResponse addMapBookmark(@AuthenticationPrincipal JwtUserDto jwtUserDto, @RequestParam Long mapId) {
+        mapService.addMapBookmark(Long.parseLong(jwtUserDto.getName()), mapId);
         return new BaseResponse<>();
     }
 
     /**
      * 탐색화면 북마크 취소
      */
-    public BaseResponse removeMapBookMark() {
+    @DeleteMapping("/bookmark")
+    public BaseResponse removeMapBookmark(@AuthenticationPrincipal JwtUserDto jwtUserDto, @RequestParam Long mapId) {
+        mapService.removeMapBookmark(Long.parseLong(jwtUserDto.getName()), mapId);
         return new BaseResponse<>();
     }
 
@@ -91,8 +96,7 @@ public class MapController {
     /**
      *  맵 생성
      */
-    @RequestMapping("/create")
-    @PostMapping
+    @PostMapping("/create")
     public BaseResponse<Void> createMap(@AuthenticationPrincipal JwtUserDto jwtUserDto,
                                                   @Valid @RequestBody CreateMapRequestDTO requestDTO) {
         Long userId = Long.parseLong(jwtUserDto.getName());
@@ -100,5 +104,14 @@ public class MapController {
         return new BaseResponse<>(null);
     }
 
+    /**
+     * 타유저의 지도데이터 조회
+     */
+    @GetMapping("/{otherUserId}")
+    public BaseResponse getOtherUserMap(@PathVariable("otherUserId") long otherUserId,
+                                        Pageable pageable) {
+        List<MapListResponseDTO> response = mapService.getOtherUserMapList(otherUserId, pageable);
+        return new BaseResponse<>(response);
+    }
 }
 

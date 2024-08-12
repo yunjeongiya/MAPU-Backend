@@ -24,11 +24,13 @@ public class Map extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @NotNull
     private String mapTitle;
 
     private String mapDescription;
+
+    @NotNull
+    private String imageUrl;
 
     @NotNull
     private String address;
