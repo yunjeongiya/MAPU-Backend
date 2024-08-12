@@ -230,4 +230,28 @@ public class UserService {
             user.setImage(imageUrl);
         }
     }
+
+    public UserInfoResponseDTO getOtherUserInfo(JwtUserDto jwtUserDto, long otherUserId) {
+        if(jwtUserDto==null){
+            return returnAnonyMousUserData();
+        }
+
+        User findUser= userRepository.findById(otherUserId);
+        if(findUser==null) throw new UserException(UserExceptionErrorCode.INVALID_USERID);
+
+        int mapCnt = mapRepository.countMapsByUserId(otherUserId);
+        int followerCnt = followRepository.countFollowerByUserId(otherUserId);
+        int followingCnt = followRepository.countFollowingByUserId(otherUserId);
+
+        UserInfoResponseDTO response = UserInfoResponseDTO
+                .builder().nickname(findUser.getNickname())
+                .profileId(findUser.getProfileId())
+                .imgUrl(findUser.getImage())
+                .mapCnt(mapCnt)
+                .followerCnt(followerCnt)
+                .followingCnt(followingCnt)
+                .build();
+
+        return response;
+    }
 }
