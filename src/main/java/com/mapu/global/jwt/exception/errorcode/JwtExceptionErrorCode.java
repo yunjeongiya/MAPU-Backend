@@ -14,7 +14,8 @@ public enum JwtExceptionErrorCode implements ResponseStatus {
     EXPIRED_JWT_TOKEN(7003, HttpStatus.UNAUTHORIZED.value(), "만료된 JWT 토큰입니다."),
     WRONG_JWT_TOKEN_TYPE(7004, HttpStatus.UNAUTHORIZED.value(), "JWT 토큰 타입이 올바르지 않습니다."),
     UNKNOWN_REFRESH_TOKEN(7005, HttpStatus.BAD_REQUEST.value(), "서버에 등록되어 있지 않은 refresh JWT 토큰입니다."),
-    INVALID_JWT_TOKEN(7006, HttpStatus.UNAUTHORIZED.value(), "유효하지 않은 JWT 토큰입니다.");
+    INVALID_JWT_TOKEN(7006, HttpStatus.UNAUTHORIZED.value(), "유효하지 않은 JWT 토큰입니다."),
+    MALFORMED_JWT_TOKEN(7007,HttpStatus.BAD_REQUEST.value(), "JWT 토큰 형식이 올바르지 않습니다.");
 
     JwtExceptionErrorCode(int code, int status, String message) {
         this.code = code;
