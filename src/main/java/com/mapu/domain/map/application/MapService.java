@@ -144,6 +144,7 @@ public class MapService {
                 .zoomLevel(requestDTO.getZoomLevel())
                 .publishLink(requestDTO.getPublishLink())
                 .isOnSearch(requestDTO.getIsOnSearch())
+                .imageUrl(requestDTO.getImageUrl())
                 .user(user)
                 .build();
         mapRepository.save(map);
