@@ -6,6 +6,7 @@ import com.mapu.domain.user.api.request.SignUpRequestDTO;
 import com.mapu.domain.user.api.request.UserUpdateRequestDTO;
 import com.mapu.domain.user.application.response.SignInUpResponseDTO;
 import com.mapu.domain.user.application.response.UserInfoResponseDTO;
+import com.mapu.domain.user.application.response.UserPageMapsResponseDTO;
 import com.mapu.domain.user.dao.UserRepository;
 import com.mapu.domain.user.domain.User;
 import com.mapu.domain.user.domain.UserRole;
@@ -32,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -253,5 +255,9 @@ public class UserService {
                 .build();
 
         return response;
+    }
+
+    public List<UserPageMapsResponseDTO> getUserPageMaps(JwtUserDto jwtUserDto) {
+        return null;
     }
 }
