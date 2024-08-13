@@ -146,3 +146,12 @@ spring:
 
 server:
   port: 9001
+
+---
+
+server:
+  servlet:
+    session:
+      cookie:
+        same-site: None
+        secure: true
