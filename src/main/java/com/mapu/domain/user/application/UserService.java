@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -257,7 +258,29 @@ public class UserService {
         return response;
     }
 
-    public List<UserPageMapsResponseDTO> getUserPageMaps(JwtUserDto jwtUserDto) {
+    public List<UserPageMapsResponseDTO> getUserPageMaps(JwtUserDto jwtUserDto, boolean editable, boolean bookmarked, String search) {
+        if (Boolean.TRUE.equals(editable)) {
+            // 편집 가능한 지도 목록 조회
+            if(jwtUserDto == null) {
+                //비로그인 사용자
+                return  new ArrayList<>();
+            }
+            if(search==null){
+                //검색 조건이 없을 때
+
+            }
+        } else if (Boolean.TRUE.equals(bookmarked)) {
+            // 북마크한 지도 목록 조회
+            if(jwtUserDto == null){
+                //비로그인 사용자
+                return new ArrayList<>();
+            }
+            if(search==null){
+                //검색 조건이 없을 때
+
+            }
+        }
+
         return null;
     }
 }

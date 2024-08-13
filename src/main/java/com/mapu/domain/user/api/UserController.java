@@ -112,10 +112,11 @@ public class UserController {
                                                                        @RequestParam(value = "bookmarked", required = false) Boolean bookmarked,
                                                                        @RequestParam(value = "search", required = false) String search){
         if (Boolean.TRUE.equals(editable) && Boolean.TRUE.equals(bookmarked)) {
-            throw new UserException(UserExceptionErrorCode.DUPLICATE_CONDITION_IS_NOT_VALID); // 또는 적절한 에러 메시지와 함께 400 Bad Request 반환
+            throw new UserException(UserExceptionErrorCode.DUPLICATE_CONDITION_IS_NOT_VALID);
         }
 
-        List<UserPageMapsResponseDTO> response = userService.getUserPageMaps(jwtUserDto);
+        List<UserPageMapsResponseDTO> response = userService.getUserPageMaps(jwtUserDto,editable,bookmarked,search);
+
         return new BaseResponse<>(response);
     }
 }
