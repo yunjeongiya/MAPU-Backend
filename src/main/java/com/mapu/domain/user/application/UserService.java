@@ -2,11 +2,10 @@ package com.mapu.domain.user.application;
 
 import com.mapu.domain.follow.dao.FollowRepository;
 import com.mapu.domain.map.dao.MapRepository;
+import com.mapu.domain.map.dao.MapUserRoleRepository;
 import com.mapu.domain.user.api.request.SignUpRequestDTO;
 import com.mapu.domain.user.api.request.UserUpdateRequestDTO;
-import com.mapu.domain.user.application.response.SignInUpResponseDTO;
-import com.mapu.domain.user.application.response.UserInfoResponseDTO;
-import com.mapu.domain.user.application.response.UserPageMapsResponseDTO;
+import com.mapu.domain.user.application.response.*;
 import com.mapu.domain.user.dao.UserRepository;
 import com.mapu.domain.user.domain.User;
 import com.mapu.domain.user.domain.UserRole;
@@ -35,7 +34,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -48,6 +46,7 @@ public class UserService {
     private final JwtService jwtService;
     private final JwtUtil jwtUtil;
     private final MapRepository mapRepository;
+    private final MapUserRoleRepository mapUserRoleRepository;
     private final FollowRepository followRepository;
     private static final String ANONYMOUS_NICKNAME = "환영해요!";
     private static final String ANONYMOUS_PROFILEID = "로그인이 필요해요";
@@ -259,28 +258,40 @@ public class UserService {
     }
 
     public List<UserPageMapsResponseDTO> getUserPageMaps(JwtUserDto jwtUserDto, boolean editable, boolean bookmarked, String search) {
+        //TODO: QueryDsl로 리팩토링 필요
+
         if (Boolean.TRUE.equals(editable)) {
             // 편집 가능한 지도 목록 조회
-            if(jwtUserDto == null) {
-                //비로그인 사용자
-                return  new ArrayList<>();
-            }
-            if(search==null){
-                //검색 조건이 없을 때
-
-            }
-        } else if (Boolean.TRUE.equals(bookmarked)) {
-            // 북마크한 지도 목록 조회
-            if(jwtUserDto == null){
+            if (jwtUserDto == null) {
                 //비로그인 사용자
                 return new ArrayList<>();
             }
-            if(search==null){
-                //검색 조건이 없을 때
+            List<UserPageMapsDTO> responseNoParticipants = mapRepository.findEditableMaps(Long.parseLong(jwtUserDto.getName()),search);
+            return returnResponseWithParticipantsData(responseNoParticipants);
 
+        } else if (Boolean.TRUE.equals(bookmarked)) {
+            // 북마크한 지도 목록 조회
+            if (jwtUserDto == null) {
+                //비로그인 사용자
+                return new ArrayList<>();
             }
+            List<UserPageMapsDTO> responseNoParticipants = mapRepository.findBookmarkedMaps(Long.parseLong(jwtUserDto.getName()), search);
+            return returnResponseWithParticipantsData(responseNoParticipants);
+        }
+          else {
+            throw new UserException(UserExceptionErrorCode.ERROR_IN_CONDITION);
+        }
+    }
+
+    private List<UserPageMapsResponseDTO> returnResponseWithParticipantsData(List<UserPageMapsDTO> responseNoParticipants) {
+        List<UserPageMapsResponseDTO> response = new ArrayList<>();
+
+        for(UserPageMapsDTO userPageMapsDTO : responseNoParticipants){
+            Long mapId = userPageMapsDTO.getMapId();
+            List<UserPageMapParticipantsDTO> participantsDTOS = mapUserRoleRepository.findMapParticipants(mapId);
+            response.add(new UserPageMapsResponseDTO(userPageMapsDTO,participantsDTOS));
         }
 
-        return null;
+        return response;
     }
 }

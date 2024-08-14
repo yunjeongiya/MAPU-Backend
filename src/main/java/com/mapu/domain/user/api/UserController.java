@@ -106,13 +106,17 @@ public class UserController {
     /**
      * 유저페이지 지도데이터 조회
      */
-    @GetMapping
+    @GetMapping("/maps")
     public BaseResponse<List<UserPageMapsResponseDTO>> getUserPageMaps(@AuthenticationPrincipal JwtUserDto jwtUserDto,
                                                                        @RequestParam(value = "editable", required = false) Boolean editable,
                                                                        @RequestParam(value = "bookmarked", required = false) Boolean bookmarked,
                                                                        @RequestParam(value = "search", required = false) String search){
         if (Boolean.TRUE.equals(editable) && Boolean.TRUE.equals(bookmarked)) {
             throw new UserException(UserExceptionErrorCode.DUPLICATE_CONDITION_IS_NOT_VALID);
+        }
+
+        if (editable==null || bookmarked==null){
+            throw new UserException(UserExceptionErrorCode.NO_CONDITION_ERROR);
         }
 
         List<UserPageMapsResponseDTO> response = userService.getUserPageMaps(jwtUserDto,editable,bookmarked,search);
