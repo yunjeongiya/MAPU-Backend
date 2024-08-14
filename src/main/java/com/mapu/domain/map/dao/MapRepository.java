@@ -1,6 +1,7 @@
 package com.mapu.domain.map.dao;
 
 import com.mapu.domain.map.application.response.MapListResponseDTO;
+import com.mapu.domain.user.application.response.UserPageMapsDTO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -31,4 +32,23 @@ public interface MapRepository extends JpaRepository<Map, Long> {
 
     @Query("SELECT m FROM Map m JOIN m.keywords k WHERE k.keyword.keyword = :keyword")
     List<Map> findByKeyword(@Param("keyword") String keyword);
+
+    @Query("SELECT new com.mapu.domain.user.application.response.UserPageMapsDTO(" +
+            "m.id, m.imageUrl, m.mapTitle, m.address, mur.role, m.created_at, m.longitude, m.latitude) " +
+            "FROM MapUserRole mur " +
+            "JOIN mur.map m " +
+            "WHERE mur.user.id = :userId " +
+            "AND (:search IS NULL OR LOWER(m.mapTitle) LIKE LOWER(CONCAT('%', :search, '%')))")
+    List<UserPageMapsDTO> findEditableMaps(@Param("userId") Long userId, @Param("search") String search);
+
+    @Query("SELECT new com.mapu.domain.user.application.response.UserPageMapsDTO(" +
+            "m.id, m.imageUrl, m.mapTitle, m.address, mur.role, " +
+            "m.created_at, m.longitude, m.latitude) " +
+            "FROM MapUserBookmark mub " +
+            "JOIN mub.map m " +
+            "JOIN m.user u " +
+            "LEFT JOIN MapUserRole mur ON mur.map.id = m.id AND mur.user.id = :userId " +
+            "WHERE mub.user.id = :userId " +
+            "AND (:search IS NULL OR LOWER(m.mapTitle) LIKE LOWER(CONCAT('%', :search, '%')))")
+    List<UserPageMapsDTO> findBookmarkedMaps(@Param("userId") Long userId, @Param("search") String search);
 }
