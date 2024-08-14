@@ -49,7 +49,7 @@ public class UserController {
 
     @PostMapping("/signup")
     public BaseResponse<SignInUpResponseDTO> saveUser(@Validated @RequestPart("requestDTO") SignUpRequestDTO request,
-                                                    @RequestPart("imageFile") MultipartFile imageFile,
+                                                    @RequestPart(value = "imageFile", required = false) MultipartFile imageFile,
                                                     HttpServletRequest httpServletRequest,
                                                     HttpServletResponse httpServletResponse) throws IOException {
         SignInUpResponseDTO response = userService.signUp(request, imageFile, httpServletRequest.getSession(false), httpServletResponse);

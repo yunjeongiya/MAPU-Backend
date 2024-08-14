@@ -90,7 +90,7 @@ public class UserService {
     }
 
     private String uploadImage(MultipartFile imageFile) throws IOException {
-        if(imageFile.isEmpty())
+        if(imageFile == null || imageFile.isEmpty())
             return null;
 
         return s3Service.uploadImage(imageFile);
