@@ -4,9 +4,6 @@ on:
   pull_request:
     types: [ closed ]
     branches: [ "dev","main" ]
-  push: # push 이벤트 발생 시
-    branches: # 타겟 브랜치
-        - dev
 env:
   AWS_REGION: ap-northeast-2
   S3_BUCKET_NAME: github-actions-s3-bucket-mapu-backend
