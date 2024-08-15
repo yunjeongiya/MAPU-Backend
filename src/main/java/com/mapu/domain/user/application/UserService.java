@@ -58,6 +58,8 @@ public class UserService {
         checkDuplicateSignUpRequest(userInfo.getEmail());
         //닉네임/ID 중복 확인하기
         checkDuplicateNameOrId(signUpRequestDTO);
+        //profileId 중복 확인하기
+
         //이미지 s3에 업로드하기
         String imageUrl = uploadImage(imageFile);
         //DB에 사용자 정보 저장하기
@@ -142,15 +144,12 @@ public class UserService {
     }
 
     private void checkDuplicateNameOrId(SignUpRequestDTO signUpRequestDTO) {
-        // 닉네임 중복 검사
-        if (userRepository.existsByNickname(signUpRequestDTO.getNickname())) {
-            throw new UserException(UserExceptionErrorCode.DUPLICATE_NICKNAME);
-        }
         // 프로필 ID 중복 검사
         if (userRepository.existsByProfileId(signUpRequestDTO.getProfileId())) {
             throw new UserException(UserExceptionErrorCode.DUPLICATE_PROFILE_ID);
         }
     }
+
 
     public long deleteUser(HttpServletRequest request, long deleteUserId) {
         log.info("delete user id {}", deleteUserId);
