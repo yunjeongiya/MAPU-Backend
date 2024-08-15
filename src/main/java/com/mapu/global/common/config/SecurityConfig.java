@@ -42,7 +42,6 @@ public class SecurityConfig {
             "/error",
             "/home/editor",
             "/home/keyword",
-            "/map/logined",
             "/map/list/**",
             "/map/search"
     };

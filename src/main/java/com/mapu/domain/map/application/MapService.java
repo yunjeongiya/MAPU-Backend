@@ -12,6 +12,7 @@ import com.mapu.domain.map.exception.MapException;
 import com.mapu.domain.map.exception.errcode.MapExceptionErrorCode;
 import com.mapu.domain.user.dao.UserRepository;
 import com.mapu.domain.user.domain.User;
+import com.mapu.global.jwt.dto.JwtUserDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,18 +35,14 @@ public class MapService {
     private final MapUserBookmarkRepository mapUserBookmarkRepository;
     private final MapUserRoleService mapUserRoleService;
 
-
-    public void checkLoginStatus(HttpServletRequest request) {
-    }
-
     public List<MapListResponseDTO> getMapList(String searchType, Pageable pageable, String searchWord) {
         switch (searchType) {
             case "RANDOM": {
-                List<MapListResponseDTO> mapList = getMapListByRandom(pageable, searchWord);
+                List<MapListResponseDTO> mapList = getMapListByRandom(pageable, searchWord, -1);
                 return mapList;
             }
             case "DATE": {
-                List<MapListResponseDTO> mapList = getMapListByDate(pageable, searchWord);
+                List<MapListResponseDTO> mapList = getMapListByDate(pageable, searchWord, -1);
                 return mapList;
             }
             default:
@@ -53,16 +50,53 @@ public class MapService {
         }
     }
 
-    private List<MapListResponseDTO> getMapListByDate(Pageable pageable, String searchWord) {
-        List<Map> maps = mapRepository.findAllByOrderByCreatedAtDesc(searchWord,pageable);
-        log.info("MapService GetMapListByDate - Retrieved {} map(s) from the database", maps.size());
-        return maps.stream().map(this::mapConvertToDTO).collect(Collectors.toList());
+    public List<MapListResponseDTO> getMapListForLoginedUser(JwtUserDto jwtUserDto, String searchType, Pageable pageable, String searchWord) {
+        long userId = Integer.parseInt(jwtUserDto.getName());
+
+        switch (searchType) {
+            case "RANDOM": {
+                List<MapListResponseDTO> mapList = getMapListByRandom(pageable, searchWord, userId);
+                return mapList;
+            }
+            case "DATE": {
+                List<MapListResponseDTO> mapList = getMapListByDate(pageable, searchWord, userId);
+                return mapList;
+            }
+            default:
+                throw new MapException(MapExceptionErrorCode.SOCIALTYPE_ERROR);
+        }
     }
 
-    private List<MapListResponseDTO> getMapListByRandom(Pageable pageable, String searchWord) {
-        List<Map> maps = mapRepository.findAllByRandom(searchWord, pageable);
-        log.info("MapService GetMapListByRandom - Retrieved {} map(s) from the database", maps.size());
-        return maps.stream().map(this::mapConvertToDTO).collect(Collectors.toList());
+    private List<MapListResponseDTO> getMapListByDate(Pageable pageable, String searchWord, long userId) {
+        // AnaymousUser case
+        if (userId < 0){
+            List<Map> maps = mapRepository.findAllByOrderByCreatedAtDesc(searchWord,pageable);
+            log.info("MapService findAllByOrderByCreatedAtDesc - Retrieved {} map(s) from the database", maps.size());
+            return maps.stream().map(this::mapConvertToDTO).collect(Collectors.toList());
+        }
+        // LoginedUser case
+        if (userId > 0){
+            List<Map> maps = mapRepository.findAllByOrderByCreatedAtDescForLoginedUser(searchWord, userId, pageable);
+            log.info("MapService findAllByOrderByCreatedAtDescForLoginedUser - Retrieved {} map(s) from the database", maps.size());
+            return maps.stream().map(this::mapConvertToDTO).collect(Collectors.toList());
+        }
+        throw new MapException(MapExceptionErrorCode.NO_EXIST_MAP);
+    }
+
+    private List<MapListResponseDTO> getMapListByRandom(Pageable pageable, String searchWord, long userId) {
+        // AnaymousUser case
+        if (userId < 0){
+            List<Map> maps = mapRepository.findAllByRandom(searchWord, pageable);
+            log.info("MapService GetMapListByRandom - Retrieved {} map(s) from the database", maps.size());
+            return maps.stream().map(this::mapConvertToDTO).collect(Collectors.toList());
+        }
+        // LoginedUser case
+        if (userId > 0){
+            List<Map> maps = mapRepository.findAllByRandomForLoginedUser(searchWord, userId, pageable);
+            log.info("MapService findAllByRandomForLoginedUser - Retrieved {} map(s) from the database", maps.size());
+            return maps.stream().map(this::mapConvertToDTO).collect(Collectors.toList());
+        }
+        throw new MapException(MapExceptionErrorCode.NO_EXIST_MAP);
     }
 
     private MapListResponseDTO mapConvertToDTO(Map map) {
@@ -82,6 +116,7 @@ public class MapService {
         log.info("keywords = " + keywords);
 
         return MapListResponseDTO.builder()
+                .mapId(map.getId())
                 .title(map.getMapTitle())
                 .region(map.getAddress())
                 .description(map.getMapDescription())

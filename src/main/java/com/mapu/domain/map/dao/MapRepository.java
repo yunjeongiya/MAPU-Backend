@@ -14,11 +14,17 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 public interface MapRepository extends JpaRepository<Map, Long> {
-    @Query("SELECT m FROM Map m WHERE LOWER(m.mapTitle) LIKE LOWER(CONCAT('%', :searchWord, '%')) ORDER BY m.created_at DESC")
+    @Query("SELECT m FROM Map m WHERE LOWER(m.mapTitle) LIKE LOWER(CONCAT('%', :searchWord, '%')) AND m.isOnSearch=true ORDER BY m.created_at DESC")
     List<Map> findAllByOrderByCreatedAtDesc(@Param("searchWord") String searchWord, Pageable pageable);
 
-    @Query("SELECT m FROM Map m WHERE LOWER(m.mapTitle) LIKE LOWER(CONCAT('%', :searchWord, '%')) ORDER BY FUNCTION('RAND')")
+    @Query("SELECT m FROM Map m WHERE LOWER(m.mapTitle) LIKE LOWER(CONCAT('%', :searchWord, '%')) AND m.isOnSearch=true ORDER BY FUNCTION('RAND')")
     List<Map> findAllByRandom(@Param("searchWord") String searchWord, Pageable pageable);
+
+    @Query("SELECT m FROM Map m WHERE LOWER(m.mapTitle) LIKE LOWER(CONCAT('%', :searchWord, '%')) AND m.isOnSearch=true AND m.user.id != :userId ORDER BY m.created_at DESC")
+    List<Map> findAllByOrderByCreatedAtDescForLoginedUser(@Param("searchWord") String searchWord, @Param("userId") long userId, Pageable pageable);
+
+    @Query("SELECT m FROM Map m WHERE LOWER(m.mapTitle) LIKE LOWER(CONCAT('%', :searchWord, '%')) AND m.isOnSearch=true AND m.user.id != :userId ORDER BY FUNCTION('RAND')")
+    List<Map> findAllByRandomForLoginedUser(@Param("searchWord") String searchWord, @Param("userId") long userId, Pageable pageable);
 
     Map findById(long mapId);
 
