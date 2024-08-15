@@ -5,6 +5,9 @@ on:
   pull_request:
     branches: [ "dev" ]
     types: [ opened, synchronize ]
+  push: # push 이벤트 발생 시
+    branches: # 타겟 브랜치
+      - dev
 
 #build 작업
 jobs:
