@@ -33,7 +33,7 @@ public class JwtController {
             }
         }
         AccessTokenResponseDto accessTokenResponse = jwtService.reissueAccessToken(refresh);
-        response.addCookie(jwtService.rotateRefreshToken(refresh));
+        jwtService.rotateRefreshToken(refresh, response);
 
         return new BaseResponse<>(accessTokenResponse);
     }

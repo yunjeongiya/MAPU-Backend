@@ -59,7 +59,7 @@ public class OAuthService {
                     .build();
 
             accessToken = jwtUtil.createAccessToken(jwtUserDto);
-            response.addCookie(jwtUtil.createRefreshJwtCookie(jwtUserDto));
+            jwtUtil.createRefreshJwtCookie(jwtUserDto,response);
         } catch (Exception e) {
             throw new JwtException(JwtExceptionErrorCode.ERROR_IN_JWT);
         }

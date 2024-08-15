@@ -74,7 +74,8 @@ public class UserService {
             throw new UserException(UserExceptionErrorCode.SIGNUP_FAIL);
         }
 
-        response.addCookie(jwtUtil.createRefreshJwtCookie(jwtUserDto));
+        jwtUtil.createRefreshJwtCookie(jwtUserDto,response);
+        log.info("addCookie 호출");
         SignInUpResponseDTO responseDTO = SignInUpResponseDTO.builder()
                 .imgUrl(imageUrl)
                 .profileId(signUpRequestDTO.getProfileId())

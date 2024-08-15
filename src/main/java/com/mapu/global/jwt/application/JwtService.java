@@ -9,6 +9,7 @@ import com.mapu.global.jwt.exception.JwtException;
 import com.mapu.global.jwt.exception.errorcode.JwtExceptionErrorCode;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,10 +39,10 @@ public class JwtService {
         jwtRedisRepository.deleteById(refresh);
     }
 
-    public Cookie rotateRefreshToken(String refresh) {
+    public Cookie rotateRefreshToken(String refresh, HttpServletResponse response) {
         deleteRefreshJwt(refresh);
         JwtUserDto jwtUserDto = jwtUtil.getUserDtoFromToken(refresh, JwtUtil.REFRESH);
-        return jwtUtil.createRefreshJwtCookie(jwtUserDto);
+        return jwtUtil.createRefreshJwtCookie(jwtUserDto, response);
     }
 
 }
