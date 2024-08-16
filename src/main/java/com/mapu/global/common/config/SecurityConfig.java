@@ -43,7 +43,8 @@ public class SecurityConfig {
             "/home/editor",
             "/home/keyword",
             "/map/list/**",
-            "/map/search"
+            "/map/search",
+            "/home/map/keyword"
     };
 
     @Bean

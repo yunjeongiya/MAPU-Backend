@@ -32,6 +32,9 @@ public class JwtFilter extends OncePerRequestFilter {
             "/search/map",
             "/jwt/reissue",
             "/error",
+            "/home/keyword",
+            "/home/map/keyword",
+            "/map/search",
             "/home/keyword"
     );
     //익명사용자 구분 필요 URL 패턴 리스트
