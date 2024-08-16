@@ -42,7 +42,6 @@ public class SecurityConfig {
             "/error",
             "/home/editor",
             "/home/keyword",
-            "/map/logined",
             "/map/list/**",
             "/map/search",
             "/home/map/keyword"
@@ -84,7 +83,7 @@ public class SecurityConfig {
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                         CorsConfiguration configuration = new CorsConfiguration();
                         configuration.setAllowedOrigins(List.of(("https://mapu-frontend.vercel.app"),
-                                ("http://localhost:9000"),("http://localhost:3000")));
+                                ("http://localhost:9000"),("https://localhost:3000")));
                         configuration.setAllowedMethods(Collections.singletonList("*"));
                         configuration.setAllowCredentials(true);
                         configuration.setAllowedHeaders(Collections.singletonList("*"));

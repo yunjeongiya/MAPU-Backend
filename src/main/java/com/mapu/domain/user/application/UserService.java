@@ -2,10 +2,10 @@ package com.mapu.domain.user.application;
 
 import com.mapu.domain.follow.dao.FollowRepository;
 import com.mapu.domain.map.dao.MapRepository;
+import com.mapu.domain.map.dao.MapUserRoleRepository;
 import com.mapu.domain.user.api.request.SignUpRequestDTO;
 import com.mapu.domain.user.api.request.UserUpdateRequestDTO;
-import com.mapu.domain.user.application.response.SignInUpResponseDTO;
-import com.mapu.domain.user.application.response.UserInfoResponseDTO;
+import com.mapu.domain.user.application.response.*;
 import com.mapu.domain.user.dao.UserRepository;
 import com.mapu.domain.user.domain.User;
 import com.mapu.domain.user.domain.UserRole;
@@ -32,7 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -45,6 +46,7 @@ public class UserService {
     private final JwtService jwtService;
     private final JwtUtil jwtUtil;
     private final MapRepository mapRepository;
+    private final MapUserRoleRepository mapUserRoleRepository;
     private final FollowRepository followRepository;
     private static final String ANONYMOUS_NICKNAME = "환영해요!";
     private static final String ANONYMOUS_PROFILEID = "로그인이 필요해요";
@@ -56,6 +58,8 @@ public class UserService {
         checkDuplicateSignUpRequest(userInfo.getEmail());
         //닉네임/ID 중복 확인하기
         checkDuplicateNameOrId(signUpRequestDTO);
+        //profileId 중복 확인하기
+
         //이미지 s3에 업로드하기
         String imageUrl = uploadImage(imageFile);
         //DB에 사용자 정보 저장하기
@@ -74,7 +78,8 @@ public class UserService {
             throw new UserException(UserExceptionErrorCode.SIGNUP_FAIL);
         }
 
-        response.addCookie(jwtUtil.createRefreshJwtCookie(jwtUserDto));
+        jwtUtil.createRefreshJwtCookie(jwtUserDto,response);
+        log.info("addCookie 호출");
         SignInUpResponseDTO responseDTO = SignInUpResponseDTO.builder()
                 .imgUrl(imageUrl)
                 .profileId(signUpRequestDTO.getProfileId())
@@ -90,7 +95,7 @@ public class UserService {
     }
 
     private String uploadImage(MultipartFile imageFile) throws IOException {
-        if(imageFile.isEmpty())
+        if(imageFile == null || imageFile.isEmpty())
             return null;
 
         return s3Service.uploadImage(imageFile);
@@ -140,15 +145,12 @@ public class UserService {
     }
 
     private void checkDuplicateNameOrId(SignUpRequestDTO signUpRequestDTO) {
-        // 닉네임 중복 검사
-        if (userRepository.existsByNickname(signUpRequestDTO.getNickname())) {
-            throw new UserException(UserExceptionErrorCode.DUPLICATE_NICKNAME);
-        }
         // 프로필 ID 중복 검사
         if (userRepository.existsByProfileId(signUpRequestDTO.getProfileId())) {
             throw new UserException(UserExceptionErrorCode.DUPLICATE_PROFILE_ID);
         }
     }
+
 
     public long deleteUser(HttpServletRequest request, long deleteUserId) {
         log.info("delete user id {}", deleteUserId);
@@ -251,6 +253,44 @@ public class UserService {
                 .followerCnt(followerCnt)
                 .followingCnt(followingCnt)
                 .build();
+
+        return response;
+    }
+
+    public List<UserPageMapsResponseDTO> getUserPageMaps(JwtUserDto jwtUserDto, boolean editable, boolean bookmarked, String search) {
+        //TODO: QueryDsl로 리팩토링 필요
+
+        if (Boolean.TRUE.equals(editable)) {
+            // 편집 가능한 지도 목록 조회
+            if (jwtUserDto == null) {
+                //비로그인 사용자
+                return new ArrayList<>();
+            }
+            List<UserPageMapsDTO> responseNoParticipants = mapRepository.findEditableMaps(Long.parseLong(jwtUserDto.getName()),search);
+            return returnResponseWithParticipantsData(responseNoParticipants);
+
+        } else if (Boolean.TRUE.equals(bookmarked)) {
+            // 북마크한 지도 목록 조회
+            if (jwtUserDto == null) {
+                //비로그인 사용자
+                return new ArrayList<>();
+            }
+            List<UserPageMapsDTO> responseNoParticipants = mapRepository.findBookmarkedMaps(Long.parseLong(jwtUserDto.getName()), search);
+            return returnResponseWithParticipantsData(responseNoParticipants);
+        }
+          else {
+            throw new UserException(UserExceptionErrorCode.ERROR_IN_CONDITION);
+        }
+    }
+
+    private List<UserPageMapsResponseDTO> returnResponseWithParticipantsData(List<UserPageMapsDTO> responseNoParticipants) {
+        List<UserPageMapsResponseDTO> response = new ArrayList<>();
+
+        for(UserPageMapsDTO userPageMapsDTO : responseNoParticipants){
+            Long mapId = userPageMapsDTO.getMapId();
+            List<UserPageMapParticipantsDTO> participantsDTOS = mapUserRoleRepository.findMapParticipants(mapId);
+            response.add(new UserPageMapsResponseDTO(userPageMapsDTO,participantsDTOS));
+        }
 
         return response;
     }

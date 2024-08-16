@@ -6,6 +6,9 @@ import com.mapu.domain.user.api.request.UserUpdateRequestDTO;
 import com.mapu.domain.user.application.UserService;
 import com.mapu.domain.user.application.response.SignInUpResponseDTO;
 import com.mapu.domain.user.application.response.UserInfoResponseDTO;
+import com.mapu.domain.user.application.response.UserPageMapsResponseDTO;
+import com.mapu.domain.user.exception.UserException;
+import com.mapu.domain.user.exception.errorcode.UserExceptionErrorCode;
 import com.mapu.global.common.response.BaseResponse;
 import com.mapu.global.jwt.dto.JwtUserDto;
 import com.mapu.infra.oauth.application.OAuthService;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -49,7 +53,7 @@ public class UserController {
 
     @PostMapping("/signup")
     public BaseResponse<SignInUpResponseDTO> saveUser(@Validated @RequestPart("requestDTO") SignUpRequestDTO request,
-                                                    @RequestPart("imageFile") MultipartFile imageFile,
+                                                    @RequestPart(value = "imageFile", required = false) MultipartFile imageFile,
                                                     HttpServletRequest httpServletRequest,
                                                     HttpServletResponse httpServletResponse) throws IOException {
         SignInUpResponseDTO response = userService.signUp(request, imageFile, httpServletRequest.getSession(false), httpServletResponse);
@@ -96,6 +100,27 @@ public class UserController {
     @GetMapping("/{otherUserId}")
     public BaseResponse<UserInfoResponseDTO> getOtherUserInfo(@AuthenticationPrincipal JwtUserDto jwtUserDto, @PathVariable long otherUserId) {
         UserInfoResponseDTO response = userService.getOtherUserInfo(jwtUserDto, otherUserId);
+        return new BaseResponse<>(response);
+    }
+
+    /**
+     * 유저페이지 지도데이터 조회
+     */
+    @GetMapping("/maps")
+    public BaseResponse<List<UserPageMapsResponseDTO>> getUserPageMaps(@AuthenticationPrincipal JwtUserDto jwtUserDto,
+                                                                       @RequestParam(value = "editable", required = false) Boolean editable,
+                                                                       @RequestParam(value = "bookmarked", required = false) Boolean bookmarked,
+                                                                       @RequestParam(value = "search", required = false) String search){
+        if (Boolean.TRUE.equals(editable) && Boolean.TRUE.equals(bookmarked)) {
+            throw new UserException(UserExceptionErrorCode.DUPLICATE_CONDITION_IS_NOT_VALID);
+        }
+
+        if (editable==null || bookmarked==null){
+            throw new UserException(UserExceptionErrorCode.NO_CONDITION_ERROR);
+        }
+
+        List<UserPageMapsResponseDTO> response = userService.getUserPageMaps(jwtUserDto,editable,bookmarked,search);
+
         return new BaseResponse<>(response);
     }
 }

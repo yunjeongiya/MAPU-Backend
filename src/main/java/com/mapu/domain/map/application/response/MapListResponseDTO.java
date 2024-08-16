@@ -10,6 +10,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 public class MapListResponseDTO {
+    private long mapId;
     private String imageUrl;
     private String title;
     private String region;

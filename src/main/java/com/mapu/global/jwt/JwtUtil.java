@@ -10,6 +10,8 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
+@Slf4j
 public class JwtUtil {
     public static final String CATEGORY = "category";
     public static final String NAME = "name";
@@ -90,12 +93,15 @@ public class JwtUtil {
                 .compact();
     }
 
-    private Cookie createCookie(String key, String value, int maxAge) {
+    private Cookie createCookie(String key, String value, int maxAge, HttpServletResponse response) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(maxAge);
-        cookie.setSecure(true);
         cookie.setPath("/");
-        cookie.setHttpOnly(true);
+
+        // 쿠키를 직접 응답 헤더에 추가하면서 SameSite=None; Secure 속성을 포함시킴
+        String cookieHeader = String.format("%s=%s; Max-Age=%d; Path=%s; Secure; HttpOnly; SameSite=None",
+                key, value, maxAge, cookie.getPath());
+        response.addHeader("Set-Cookie", cookieHeader);
 
         return cookie;
     }
@@ -112,10 +118,10 @@ public class JwtUtil {
         return createJwt(REFRESH, name, role, refreshExpiration*1000L);
     }
 
-    public Cookie createRefreshJwtCookie(JwtUserDto jwtUserDto) {
+    public Cookie createRefreshJwtCookie(JwtUserDto jwtUserDto,HttpServletResponse response) {
         String token = createRefreshToken(jwtUserDto);
         jwtRedisRepository.save(new JwtRedis(token, refreshExpiration));
-        return createCookie(REFRESH, token, refreshExpiration);
+        return createCookie(REFRESH, token, refreshExpiration,response);
     }
 
 

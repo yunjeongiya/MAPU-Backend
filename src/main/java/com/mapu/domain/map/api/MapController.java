@@ -31,24 +31,22 @@ public class MapController {
     private final MapUserRoleService mapUserRoleService;
 
     /**
-     * 탐색화면 로그인 여부 확인
-     */
-    @GetMapping("/logined")
-    public BaseResponse checkLoginStatus(HttpServletRequest request) {
-        mapService.checkLoginStatus(request);
-        return new BaseResponse<>();
-    }
-
-    /**
      * 탐색화면 지도 리스트 조회 (랜덤 or 날짜)
      */
     @GetMapping("/search")
-    public BaseResponse<List<MapListResponseDTO>> getMapList(
+    public BaseResponse<List<MapListResponseDTO>> getMapList(@AuthenticationPrincipal JwtUserDto jwtUserDto,
             @RequestParam(value = "searchType", defaultValue = "RANDOM") String searchType,
             @RequestParam(value = "searchWord", defaultValue = "") String searchWord,
             final Pageable pageable) {
 
-        log.info("MapController searchType: {}", searchType);
+        //로그인 된 사용자의 경우
+        if (jwtUserDto != null) {
+            log.info("MapController getMapListforLoginedUser SearchType: {}, SearchWord: {}, Pageable: {}", searchType, searchWord, pageable);
+            List<MapListResponseDTO> responseDTOList = mapService.getMapListForLoginedUser(jwtUserDto, searchType.toUpperCase(), pageable, searchWord);
+            log.info("MapController getMapList - responseDTOList size: {}", responseDTOList.size());
+            return new BaseResponse<>(responseDTOList);
+        }
+        log.info("MapController getMapListforAnaymousUser SearchType: {}, SearchWord: {}, Pageable: {}", searchType, searchWord, pageable);
         List<MapListResponseDTO> responseDTOList = mapService.getMapList(searchType.toUpperCase(), pageable, searchWord);
         log.info("MapController getMapList - responseDTOList size: {}", responseDTOList.size());
         return new BaseResponse<>(responseDTOList);
