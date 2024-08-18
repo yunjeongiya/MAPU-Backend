@@ -37,9 +37,9 @@ public class FollowController {
      */
     @DeleteMapping("/unfollow")
     public BaseResponse<Void> unfollowUser(@AuthenticationPrincipal JwtUserDto jwtUserDto,
-                                                        @RequestBody FollowRequestDTO followRequestDTO) {
+                                                        @RequestParam Long followingId) {
         String followerId = jwtUserDto.getName();
-        followService.unfollowUser(Long.parseLong(followerId), followRequestDTO.getFollowingId());
+        followService.unfollowUser(Long.parseLong(followerId), followingId);
         return new BaseResponse<>(null);
     }
 
