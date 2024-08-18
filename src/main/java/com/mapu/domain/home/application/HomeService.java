@@ -63,8 +63,14 @@ public class HomeService {
                                     .nickname(map.getUser().getNickname())
                                     .profileId(map.getUser().getProfileId())
                                     .userImage(map.getUser().getImage())
+                                    .mapId(map.getId())
                                     .mapTitle(map.getMapTitle())
                                     .mapImage(map.getImageUrl())
+                                    .mapAddress(map.getAddress())
+                                    .mapDescription(map.getMapDescription())
+                                    .mapKeywords(map.getKeywords().stream()
+                                            .map(mapKeyword -> mapKeyword.getKeyword().getKeyword())
+                                            .collect(Collectors.toList()))
                                     .build())
                             .collect(Collectors.toList());
 
