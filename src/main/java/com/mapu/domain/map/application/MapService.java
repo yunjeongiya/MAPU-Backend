@@ -190,28 +190,45 @@ public class MapService {
     }
 
     private String getMapImageUrl(double latitude, double longitude, int zoomLevel) {
-        String url = String.format("/v2/maps/static/image?center=%f,%f&level=%d&w=%d&h=%d",
-                longitude, latitude, zoomLevel, 500, 300);
-        WebClient webClient = WebClient.builder().baseUrl("https://dapi.kakao.com").build();
-        byte[] imageData = webClient.get()
-                .uri(url)
-                .header("Authorization", "KakaoAK " + oAuthClientConfig.getKakaoClientId())
-                .retrieve()
-                .bodyToMono(byte[].class)
-                .block();
+
+        // 잘못된 image 요청
+//        String url = String.format("/v2/maps/static/image?center=%f,%f&level=%d&w=%d&h=%d",
+//                longitude, latitude, zoomLevel, 500, 300);
+//        WebClient webClient = WebClient.builder().baseUrl("https://dapi.kakao.com").build();
+
+
+//        byte[] imageData = webClient.get()
+//                .uri(url)
+//                .header("Authorization", "KakaoAK " + oAuthClientConfig.getKakaoClientId())
+//                .retrieve()
+//                .bodyToMono(byte[].class)
+//                .block();
 
         // 타임스탬프 생성
-        String timestamp = DateTimeFormatter
-                .ofPattern("yyyyMMddHHmmssSSS")
-                .withZone(ZoneId.systemDefault())
-                .format(Instant.now());
+//        String timestamp = DateTimeFormatter
+//                .ofPattern("yyyyMMddHHmmssSSS")
+//                .withZone(ZoneId.systemDefault())
+//                .format(Instant.now());
 
         // 이미지 파일명 생성 map_20240819123456789_37.5665_126.9780_12.jpg
-        String fileName = String.format("map_%s_%.4f_%.4f_%d.jpg", timestamp, latitude, longitude, zoomLevel);
+//        String fileName = String.format("map_%s_%.4f_%.4f_%d.jpg", timestamp, latitude, longitude, zoomLevel);
 
-        MultipartFile multipartFile = new S3ByteArrayMultipartFile(imageData, fileName, fileName, "image/jpeg");
+//        MultipartFile multipartFile = new S3ByteArrayMultipartFile(imageData, fileName, fileName, "image/jpeg");
 
-        String example_url = "https://example.com/map/imgae";
+        String example_url = "https://map-static-image-s3-mapu-backend.s3.ap-northeast-2.amazonaws.com/2024-08-20-8.11.45.png?" +
+                "response-content-disposition=inline&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEEcaDmFwLW5vcnRoZWFzdC0yIkYwRAIgRcLiXlFvy" +
+                "CX198MiP9D6SxfEoN54Dd4LES%2FO1g5gKKYCIE5WkcL4uWVLUCtZhBKw%2BTWOT4PGhb4pjMsnU26bawOQKuQCCFAQABoMNTkwMTgzODA1MTc2IgxEgd" +
+                "eqpZ88PkzMXksqwQLSw6T9Hvr6IbhJHcNJCGPTu4iMsxrNMo9HWWIq4MS0k%2BWGQJ45%2BLFfiO2IF5jN8tXljPyyg7RL7XRFcFLAccbw%2FQ0YLxpWOo%2" +
+                "F04ZGouQBeUDBlRfGfn0bth1KmGT5Zl4Ga%2BlLNtCDqMEo5z0iWhjgpXnFWHLPSAs7muhg4MAVTLjQ%2B8ydiKQo69Qjql03qFrHnnDdA%2BSMS%2BwMHe7fo" +
+                "VhEVr4PAX7%2BLa3VD1HmBfhq8CFsw%2Fhj715K%2FYl9a02PFoD4tDYWsYasykSea3ZxSu6b2aYcIbC9pRoxR%2BOHX%2BYsrb5qtznVHUWHEfb%2FrWJtmkb8jv" +
+                "ONMI5wDhNGv0QDcoBQWGkUszPkL6VhlcQ1zX1EGG5OM0uxUS%2FurZ2TyXXe166aTWcEGluuSuYUxMIU7JRcOgBRgZqXv6aIvC2JhUjW0Bh0w5PKMtgY6tAJIkmOGt3o" +
+                "PzhuljAJmQjnVJA2w3SsyuKTcZTTo4nffuoq%2BtcVtyTLxOo%2Bq0n6JfyusKpAzqY7wc%2FF9WDhnTQkldJRpsG43HSh8fEMEwf7l4GExLP0cloVavwWB%2FvPx0GFjUU" +
+                "dOlMqqFtGz%2BezMYSSvwge0OydOicWpUDbxNF6yl7%2BRHypP3NfCV0o9m0W0uGK%2FlzP1i6whEEjwXbn6AK76V0UpLG8Imm9cquGo%2Bj3U4oU29giS%2F%2F89r4NhnMGx" +
+                "gw4lbjyuGfgJcp%2BgsrFkOm1NfUb5ilfA6IbO6v3t1XP49UA0iif012W2oZC6rmzRsPFpqzENpttxBGjVz8rb6tKXaEfbYoA9LVlflDQ5ptXPKakTvy9dlLbIGX7UGwtlDP4z" +
+                "fl6lC%2BUdjk2XAf1staIyDpqzow%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20240819T231642Z&X-Amz-SignedHeaders=host&X-Amz-Expires" +
+                "=300&X-Amz-Credential=ASIAYS2NSGD4GAOOUS7F%2F20240819%2Fap-northeast-2%2Fs3%2Faws4_request&X-Amz-Signature=a42fa17978022965f85d86e4346d" +
+                "42e880977f09f663ba7a3a6eb01f49cde71d";
+
         return example_url;
 
 //        try {
