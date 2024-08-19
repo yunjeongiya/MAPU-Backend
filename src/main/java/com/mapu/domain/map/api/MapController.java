@@ -58,8 +58,9 @@ public class MapController {
     /**
      * 탐색화면 북마크 추가
      */
-    @PostMapping("/bookmark")
-    public BaseResponse addMapBookmark(@AuthenticationPrincipal JwtUserDto jwtUserDto, @RequestParam Long mapId) {
+    @PostMapping("/{mapId}/bookmark")
+    public BaseResponse addMapBookmark(@AuthenticationPrincipal JwtUserDto jwtUserDto,
+                                       @PathVariable("mapId") Long mapId) {
         mapService.addMapBookmark(Long.parseLong(jwtUserDto.getName()), mapId);
         return new BaseResponse<>();
     }
@@ -67,8 +68,9 @@ public class MapController {
     /**
      * 탐색화면 북마크 취소
      */
-    @DeleteMapping("/bookmark")
-    public BaseResponse removeMapBookmark(@AuthenticationPrincipal JwtUserDto jwtUserDto, @RequestParam Long mapId) {
+    @DeleteMapping("/{mapId}/bookmark")
+    public BaseResponse removeMapBookmark(@AuthenticationPrincipal JwtUserDto jwtUserDto,
+                                          @PathVariable("mapId") Long mapId) {
         mapService.removeMapBookmark(Long.parseLong(jwtUserDto.getName()), mapId);
         return new BaseResponse<>();
     }
@@ -140,7 +142,7 @@ public class MapController {
      * 지도 제목 수정 API (지도 편집 화면 좌측 사이드 패널)
      */
     @Transactional
-    @PatchMapping("/info/{mapId}/title")
+    @PatchMapping("/{mapId}/info/title")
     public BaseResponse updateMapTitle(@AuthenticationPrincipal JwtUserDto jwtUserDto,
                                        @PathVariable("mapId") long mapId,
                                        @RequestBody UpdateMapRequest updateMapRequest){
@@ -152,7 +154,7 @@ public class MapController {
      * 지도 설명 수정 API (지도 편집 화면 좌측 사이드 패널)
      */
     @Transactional
-    @PatchMapping("/info/{mapId}/description")
+    @PatchMapping("/{mapId}/info/description")
     public BaseResponse updateMapDescription(@AuthenticationPrincipal JwtUserDto jwtUserDto,
                                              @PathVariable("mapId") long mapId,
                                              @RequestBody UpdateMapRequest updateMapRequest){
