@@ -98,7 +98,8 @@ public class FollowService {
                 .map(follow -> FollowUserDTO.builder()
                         .userId(follow.getFollowing().getId())
                         .nickname(follow.getFollowing().getNickname())
-                        .profileImageUrl(follow.getFollowing().getImage())
+                        .imgUrl(follow.getFollowing().getImage())
+                        .profileId(follow.getFollowing().getProfileId())
                         .build())
                 .collect(Collectors.toList());
 
