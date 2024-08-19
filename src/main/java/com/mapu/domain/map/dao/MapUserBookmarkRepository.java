@@ -13,4 +13,6 @@ public interface MapUserBookmarkRepository extends JpaRepository<MapUserBookmark
             "join User u on u.id=:userId " +
             "join Map m on m.id=:mapId")
     boolean isExistByUserIdAndMapId(@Param("userId") Long userId, @Param("mapId") Long mapId);
+
+    boolean existsByMapIdAndUserId(Long mapId, long userId);
 }

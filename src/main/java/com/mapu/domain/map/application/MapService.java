@@ -147,6 +147,7 @@ public class MapService {
     public void addMapBookmark(long userId, Long mapId) {
         User user = userRepository.findById(userId);
         Map map = mapRepository.findById(mapId).orElseThrow(()-> new MapException(MapExceptionErrorCode.NO_EXIST_MAP));
+        if(mapUserBookmarkRepository.existsByMapIdAndUserId(mapId,userId)) throw new MapException(MapExceptionErrorCode.ALREADY_BOOKMARKED);
         MapUserBookmark mapUserBookmark = MapUserBookmark.builder().user(user).map(map).build();
         mapUserBookmarkRepository.save(mapUserBookmark);
     }
