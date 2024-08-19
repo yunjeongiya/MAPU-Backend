@@ -76,8 +76,8 @@ public class UserController {
      */
     @PatchMapping
     public BaseResponse updateUserInfo(@AuthenticationPrincipal JwtUserDto jwtUserDto,
-                                               @Validated @RequestPart("requestDTO") UserUpdateRequestDTO request,
-                                               @RequestPart("imageFile") MultipartFile image) throws IOException {
+                                       @Validated @RequestPart("requestDTO") UserUpdateRequestDTO request,
+                                       @RequestPart(value = "imageFile", required = false)  MultipartFile image) throws IOException {
         userService.updateUser(Long.parseLong(jwtUserDto.getName()), request, image);
         return new BaseResponse<>();
     }
