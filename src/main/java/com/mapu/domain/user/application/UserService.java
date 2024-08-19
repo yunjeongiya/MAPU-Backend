@@ -226,7 +226,11 @@ public class UserService {
 
         user.setNickname(request.getNickname());
         user.setProfileId(request.getProfileId());
-        if(image.isEmpty()) user.setImage(request.getImageUrl());
+        if(image==null) {
+            if(request.getImageUrl()==null)
+                user.setImage(null);
+            else user.setImage(request.getImageUrl());
+        }
         else {
             String imageUrl = uploadImage(image);
             user.setImage(imageUrl);
