@@ -2,8 +2,10 @@ package com.mapu.domain.map.api;
 
 import com.mapu.domain.map.api.request.AddEditorRequestDTO;
 import com.mapu.domain.map.api.request.CreateMapRequestDTO;
+import com.mapu.domain.map.api.request.UpdateMapRequest;
 import com.mapu.domain.map.application.MapService;
 import com.mapu.domain.map.application.MapUserRoleService;
+import com.mapu.domain.map.application.response.MapBasicInfoResponseDTO;
 import com.mapu.domain.map.application.response.MapEditorListResponseDTO;
 import com.mapu.domain.map.application.response.MapListResponseDTO;
 import com.mapu.global.common.response.BaseResponse;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -104,15 +107,6 @@ public class MapController {
     }
 
     /**
-     * 맵 편집 페이지 접속
-     */
-    @GetMapping("/{mapId}")
-    public BaseResponse<Void> accessMap(@AuthenticationPrincipal JwtUserDto jwtUserDto,
-                                        @PathVariable("mapId") Long mapId) {
-        return new BaseResponse();
-    }
-
-    /**
      * 타유저의 지도데이터 조회
      */
     @GetMapping("/list/{otherUserId}")
@@ -120,6 +114,39 @@ public class MapController {
                                         Pageable pageable) {
         List<MapListResponseDTO> response = mapService.getOtherUserMapList(otherUserId, pageable);
         return new BaseResponse<>(response);
+    }
+
+    /**
+     * 지도 기본 정보 조회 API (지도 편집 화면 좌측 사이드 패널)
+     */
+    @GetMapping("/info/{mapId}")
+    public BaseResponse<MapBasicInfoResponseDTO> getMapInfo(@AuthenticationPrincipal JwtUserDto jwtUserDto, @PathVariable("mapId") Long mapId){
+        MapBasicInfoResponseDTO response = mapService.getMapBasicInfo(jwtUserDto, mapId);
+        return new BaseResponse<>(response);
+    }
+
+    /**
+     * 지도 제목 수정 API (지도 편집 화면 좌측 사이드 패널)
+     */
+    @Transactional
+    @PatchMapping("/info/{mapId}/title")
+    public BaseResponse updateMapTitle(@AuthenticationPrincipal JwtUserDto jwtUserDto,
+                                       @PathVariable("mapId") long mapId,
+                                       @RequestBody UpdateMapRequest updateMapRequest){
+        mapService.updateMapTitle(jwtUserDto, mapId, updateMapRequest.getContent());
+        return new BaseResponse();
+    }
+
+    /**
+     * 지도 설명 수정 API (지도 편집 화면 좌측 사이드 패널)
+     */
+    @Transactional
+    @PatchMapping("/info/{mapId}/description")
+    public BaseResponse updateMapDescription(@AuthenticationPrincipal JwtUserDto jwtUserDto,
+                                             @PathVariable("mapId") long mapId,
+                                             @RequestBody UpdateMapRequest updateMapRequest){
+        mapService.updateMapDescription(jwtUserDto, mapId, updateMapRequest.getContent());
+        return new BaseResponse();
     }
 }
 

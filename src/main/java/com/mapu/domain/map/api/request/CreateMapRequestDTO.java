@@ -1,5 +1,6 @@
 package com.mapu.domain.map.api.request;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -17,8 +18,6 @@ public class CreateMapRequestDTO {
     private String mapTitle;
 
     private String mapDescription;
-
-    private String imageUrl;
 
     @NotNull(message = "주소는 필수입니다.")
     private String address;

@@ -1,5 +1,7 @@
 package com.mapu.domain.map.dao;
 
+import com.mapu.domain.map.application.response.MapBasicInfoDTO;
+import com.mapu.domain.map.application.response.MapBasicInfoResponseDTO;
 import com.mapu.domain.map.application.response.MapListResponseDTO;
 import com.mapu.domain.user.application.response.UserPageMapsDTO;
 import org.springframework.data.domain.PageRequest;
@@ -57,4 +59,9 @@ public interface MapRepository extends JpaRepository<Map, Long> {
             "WHERE mub.user.id = :userId " +
             "AND (:search IS NULL OR LOWER(m.mapTitle) LIKE LOWER(CONCAT('%', :search, '%')))")
     List<UserPageMapsDTO> findBookmarkedMaps(@Param("userId") Long userId, @Param("search") String search);
+
+    @Query("select new com.mapu.domain.map.application.response.MapBasicInfoDTO( " +
+            "m.id, m.mapTitle, m.address, m.mapDescription, m.latitude, m.longitude, u " +
+            ") FROM Map m JOIN User u ON m.user = u AND m.id = :mapId ")
+    MapBasicInfoDTO findMapBasicInfoById(@Param("mapId") long mapId);
 }
