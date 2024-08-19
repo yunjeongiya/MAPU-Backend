@@ -17,6 +17,7 @@ public class HomeFollowingMapResponseDTO {
     @Builder
     @Getter
     public static class MapDTO {
+        private Long mapId;
         private String title;
         private String address;
         private String imageUrl;
