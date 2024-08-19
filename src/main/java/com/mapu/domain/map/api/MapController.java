@@ -120,14 +120,15 @@ public class MapController {
      * 지도 기본 정보 조회 API (지도 편집 화면 좌측 사이드 패널)
      */
     //edit인 경우 (access token을 받기 때문에 edit에만 사용할 수 있음)
-    @GetMapping("/basic-info/{mapId}/edit")
+    @GetMapping("/{mapId}/basic-info/edit")
     public BaseResponse<MapBasicInfoResponseDTO> getMapInfo(@AuthenticationPrincipal JwtUserDto jwtUserDto, @PathVariable("mapId") Long mapId){
+        log.info("MapController getMapInfoForLoginedUser MapId: {}");
         //editor
         MapBasicInfoResponseDTO response = mapService.getMapBasicInfo(jwtUserDto, mapId);
         return new BaseResponse<>(response);
     }
     //edit인 경우 (access token을 받기 때문에 edit에만 사용할 수 있음)
-    @GetMapping("/basic-info/{mapId}/view")
+    @GetMapping("/{mapId}/basic-info/view")
     public BaseResponse<MapBasicInfoResponseDTO> getMapInfo(@PathVariable("mapId") Long mapId){
         //viewer
         MapBasicInfoResponseDTO response = mapService.getMapBasicInfoForViewer(mapId);
