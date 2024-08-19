@@ -45,7 +45,7 @@ public class SecurityConfig {
             "/map/list/**",
             "/map/search",
             "/home/map/keyword",
-            "/map/basic-info/*/view"
+            "/map/*/basic-info/view"
     };
 
     @Bean
@@ -67,6 +67,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers(WHITE_LIST).permitAll()
                         .requestMatchers(HttpMethod.GET,"/user").permitAll()
+                        .requestMatchers( "/map/*/bookmark").permitAll()
                         .requestMatchers("/map/**").access(new MapAuthorizationManager(mapUserRoleService))
                         .anyRequest().authenticated());
 
