@@ -61,7 +61,7 @@ public interface MapRepository extends JpaRepository<Map, Long> {
     List<UserPageMapsDTO> findBookmarkedMaps(@Param("userId") Long userId, @Param("search") String search);
 
     @Query("select new com.mapu.domain.map.application.response.MapBasicInfoDTO( " +
-            "m.id, m.mapTitle, m.address, m.mapDescription, m.latitude, m.longitude, u " +
+            "m.id, m.mapTitle, m.address, m.mapDescription, m.latitude, m.longitude, m.isOnSearch, u " +
             ") FROM Map m JOIN User u ON m.user = u AND m.id = :mapId ")
     MapBasicInfoDTO findMapBasicInfoById(@Param("mapId") long mapId);
 }

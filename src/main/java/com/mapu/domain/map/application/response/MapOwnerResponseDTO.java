@@ -14,4 +14,5 @@ public class MapOwnerResponseDTO {
     private String imageUrl;
     private String nickName;
     private String profileId;
+    private boolean amIFollowing;
 }

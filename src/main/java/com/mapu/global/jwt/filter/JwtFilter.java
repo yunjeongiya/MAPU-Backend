@@ -42,7 +42,8 @@ public class JwtFilter extends OncePerRequestFilter {
             "/home",
             "/user/maps",
             "/home/editor",
-            "/map/search"
+            "/map/search",
+            "/map/basic-info/\\d+"
     );
     //GET 메서드만 허용 URL 패턴 리스트
     private final List<String> ONLY_GET_ANONYMOUS_URL_LIST = List.of(
@@ -52,6 +53,7 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestUri = request.getRequestURI();
+        log.info("requesturi: {}", requestUri);
         String authorization = request.getHeader("Authorization");
 
         if(isUrlPermitted(PERMIT_ALL_URL_LIST,requestUri)) {
