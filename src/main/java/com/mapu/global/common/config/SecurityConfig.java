@@ -45,7 +45,7 @@ public class SecurityConfig {
             "/map/list/**",
             "/map/search",
             "/home/map/keyword",
-            "/info/{mapId}/view"
+            "/map/basic-info/**"
     };
 
     @Bean
@@ -67,8 +67,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers(WHITE_LIST).permitAll()
                         .requestMatchers(HttpMethod.GET,"/user").permitAll()
-                        .requestMatchers("/map/bookmark", "/map/create", "/map/info/**").authenticated()
-                        .requestMatchers("/map/**").access(new MapAuthorizationManager(mapUserRoleService))
+                        //.requestMatchers("/map/**").access(new MapAuthorizationManager(mapUserRoleService))
                         .anyRequest().authenticated());
 
         //JWTFilter 추가

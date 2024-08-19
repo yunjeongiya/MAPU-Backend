@@ -238,6 +238,7 @@ public class MapService {
 
     public MapBasicInfoResponseDTO getMapBasicInfo(JwtUserDto jwtUserDto, Long mapId) {
         log.info("MapService getMapBasicInfo - Retrieved map with id {}", mapId);
+        log.info("userId {}", mapId);
         long userId = Integer.parseInt(jwtUserDto.getName());
         MapBasicInfoDTO mapBasicInfo = mapRepository.findMapBasicInfoById(mapId);
 

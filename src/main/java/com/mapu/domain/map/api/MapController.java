@@ -120,21 +120,19 @@ public class MapController {
      * 지도 기본 정보 조회 API (지도 편집 화면 좌측 사이드 패널)
      */
     //edit인 경우 (access token을 받기 때문에 edit에만 사용할 수 있음)
-    @GetMapping("/info/{mapId}/edit")
+    @GetMapping("/basic-info/{mapId}")
     public BaseResponse<MapBasicInfoResponseDTO> getMapInfo(@AuthenticationPrincipal JwtUserDto jwtUserDto, @PathVariable("mapId") Long mapId){
-        MapBasicInfoResponseDTO response = mapService.getMapBasicInfo(jwtUserDto, mapId);
-        return new BaseResponse<>(response);
-    }
+        //editor
+        if (jwtUserDto != null) {
+            MapBasicInfoResponseDTO response = mapService.getMapBasicInfo(jwtUserDto, mapId);
+            return new BaseResponse<>(response);
+        }
 
-    /**
-     * 지도 기본 정보 조회 API (지도 편집 화면 좌측 사이드 패널)
-     */
-    //edit인 경우 (access token을 받기 때문에 edit에만 사용할 수 있음)
-    @GetMapping("/info/{mapId}/view")
-    public BaseResponse<MapBasicInfoResponseDTO> getMapInfo(@PathVariable("mapId") Long mapId){
+        //viewer
         MapBasicInfoResponseDTO response = mapService.getMapBasicInfoForViewer(mapId);
         return new BaseResponse<>(response);
     }
+
 
     /**
      * 지도 제목 수정 API (지도 편집 화면 좌측 사이드 패널)
@@ -163,7 +161,7 @@ public class MapController {
     /**
      * 지도 게시하기
      */
-    @PatchMapping("/publish")
+    @PatchMapping("/{mapId}/publish")
     public BaseResponse publishMap (@AuthenticationPrincipal JwtUserDto jwtUserDto, @PathVariable("mapId") long mapId){
         mapService.publishMap(jwtUserDto,mapId);
         return new BaseResponse();
