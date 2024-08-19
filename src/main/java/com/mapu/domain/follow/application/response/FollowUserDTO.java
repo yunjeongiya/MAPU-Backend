@@ -6,13 +6,15 @@ import lombok.*;
 @NoArgsConstructor
 public class FollowUserDTO {
     private Long userId;
-    private String nickname;
-    private String profileImageUrl;
+    private String nickName;
+    private String imgUrl;
+    private String profileId;
 
     @Builder
-    public FollowUserDTO(Long userId, String nickname, String profileImageUrl) {
+    public FollowUserDTO(Long userId, String nickname, String imgUrl, String profileId ) {
         this.userId = userId;
-        this.nickname = nickname;
-        this.profileImageUrl = profileImageUrl;
+        this.nickName = nickname;
+        this.imgUrl = imgUrl;
+        this.profileId = profileId;
     }
 }
