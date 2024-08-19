@@ -36,6 +36,7 @@ public class HomeService {
                     List<Map> userMaps = mapRepository.findByUserId(user.getId());
                     List<HomeFollowingMapResponseDTO.MapDTO> mapDTOs = userMaps.stream()
                             .map(map -> HomeFollowingMapResponseDTO.MapDTO.builder()
+                                    .mapId(map.getId())
                                     .title(map.getMapTitle())
                                     .address(map.getAddress())
                                     .imageUrl(map.getImageUrl())
