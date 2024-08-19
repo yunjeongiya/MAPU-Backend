@@ -44,7 +44,8 @@ public class SecurityConfig {
             "/home/keyword",
             "/map/list/**",
             "/map/search",
-            "/home/map/keyword"
+            "/home/map/keyword",
+            "/info/{mapId}/view"
     };
 
     @Bean

@@ -13,6 +13,7 @@ public class MapBasicInfoDTO {
     private String description;
     private double latitude;
     private double longitude;
+    private boolean isOnSearch;
     private User owner;
 
 }

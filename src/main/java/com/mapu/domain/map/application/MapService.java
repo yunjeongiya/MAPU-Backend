@@ -1,5 +1,6 @@
 package com.mapu.domain.map.application;
 
+import com.mapu.domain.follow.dao.FollowRepository;
 import com.mapu.domain.map.api.request.CreateMapRequestDTO;
 import com.mapu.domain.map.application.response.MapBasicInfoDTO;
 import com.mapu.domain.map.application.response.MapBasicInfoResponseDTO;
@@ -26,8 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -47,6 +46,7 @@ public class MapService {
     private final MapUserRoleService mapUserRoleService;
     private final S3Service s3Service;
     private final OAuthClientConfig oAuthClientConfig;
+    private final FollowRepository followRepository;
 
     public List<MapListResponseDTO> getMapList(String searchType, Pageable pageable, String searchWord) {
         switch (searchType) {
@@ -241,16 +241,19 @@ public class MapService {
         long userId = Integer.parseInt(jwtUserDto.getName());
         MapBasicInfoDTO mapBasicInfo = mapRepository.findMapBasicInfoById(mapId);
 
-
         if (mapBasicInfo.getOwner().getId() != userId) {
             // 다른 사용자의 map이므로 mapowner 정보 다 넘겨주기
+            boolean amIFollowingOwner = followRepository.isFollowingExistByIds(userId, mapBasicInfo.getOwner().getId());
             User user = mapBasicInfo.getOwner();
             MapOwnerResponseDTO owner = MapOwnerResponseDTO.builder()
                     .userId(user.getId())
                     .imageUrl(user.getImage())
                     .nickName(user.getNickname())
                     .profileId(user.getProfileId())
+                    .amIFollowing(amIFollowingOwner)
                     .build();
+
+            boolean existByUseIdAndMapId = mapUserBookmarkRepository.isExistByUserIdAndMapId(userId, mapId);
             return MapBasicInfoResponseDTO.builder()
                     .mapId(mapBasicInfo.getMapId())
                     .title(mapBasicInfo.getTitle())
@@ -258,11 +261,14 @@ public class MapService {
                     .description(mapBasicInfo.getDescription())
                     .latitude(mapBasicInfo.getLatitude())
                     .longitude(mapBasicInfo.getLongitude())
+                    .isPublished(mapBasicInfo.isOnSearch())
                     .isMine(false)
+                    .isBookmarked(existByUseIdAndMapId)
                     .owner(owner)
                     .build();
         }
 
+        //내가 지도 제작자인 경우
         return MapBasicInfoResponseDTO.builder()
                 .mapId(mapBasicInfo.getMapId())
                 .title(mapBasicInfo.getTitle())
@@ -272,6 +278,35 @@ public class MapService {
                 .longitude(mapBasicInfo.getLongitude())
                 .isMine(true)
                 .owner(new MapOwnerResponseDTO())
+                .build();
+    }
+
+    //view에 대한 지도 기본 정보 조회
+    public MapBasicInfoResponseDTO getMapBasicInfoForViewer(Long mapId) {
+        log.info("MapService getMapBasicInfoForEdit - Retrieved map with id {}", mapId);
+        MapBasicInfoDTO mapBasicInfo = mapRepository.findMapBasicInfoById(mapId);
+
+        //뷰어 모드는 내가 무조건 제 3자이므로 mapowner 정보 다 넘겨주기
+        User user = mapBasicInfo.getOwner();
+        MapOwnerResponseDTO owner = MapOwnerResponseDTO.builder()
+                .userId(user.getId())
+                .imageUrl(user.getImage())
+                .nickName(user.getNickname())
+                .profileId(user.getProfileId())
+                .amIFollowing(false)
+                .build();
+
+        return MapBasicInfoResponseDTO.builder()
+                .mapId(mapBasicInfo.getMapId())
+                .title(mapBasicInfo.getTitle())
+                .address(mapBasicInfo.getAddress())
+                .description(mapBasicInfo.getDescription())
+                .latitude(mapBasicInfo.getLatitude())
+                .longitude(mapBasicInfo.getLongitude())
+                .isPublished(mapBasicInfo.isOnSearch())
+                .isMine(false)
+                .isBookmarked(false)
+                .owner(owner)
                 .build();
     }
 
@@ -296,4 +331,13 @@ public class MapService {
         mapRepository.save(map);
         log.info("MapService updateMapTitle - Updated title for map with id {} to '{}'", mapId, updatedDescription);
     }
+
+    public void publishMap(JwtUserDto jwtUserDto, long mapId) {
+        log.info("MapService publishMap - Retrieved map with id {}", mapId);
+        Map map = mapRepository.findById(mapId);
+        if (map == null) { new MapException(MapExceptionErrorCode.NO_EXIST_MAP);}
+        map.setOnSearch(!map.isOnSearch());
+        mapRepository.save(map);
+    }
+
 }

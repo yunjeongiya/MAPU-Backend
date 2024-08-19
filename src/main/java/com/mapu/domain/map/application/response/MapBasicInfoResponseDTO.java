@@ -16,6 +16,8 @@ public class MapBasicInfoResponseDTO {
     private String description;
     private double latitude;
     private double longitude;
+    private boolean isPublished;
     private boolean isMine;
+    private boolean isBookmarked;
     private MapOwnerResponseDTO owner;
 }
