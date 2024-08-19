@@ -9,8 +9,11 @@ import com.mapu.domain.map.application.response.MapOwnerResponseDTO;
 import com.mapu.domain.map.dao.MapKeywordRepository;
 import com.mapu.domain.map.dao.MapUserBookmarkRepository;
 import com.mapu.domain.map.dao.MapRepository;
+import com.mapu.domain.map.dao.MapUserRoleRepository;
 import com.mapu.domain.map.domain.Map;
 import com.mapu.domain.map.domain.MapUserBookmark;
+import com.mapu.domain.map.domain.MapUserRole;
+import com.mapu.domain.map.domain.Role;
 import com.mapu.domain.map.exception.MapException;
 import com.mapu.domain.map.exception.errcode.MapExceptionErrorCode;
 import com.mapu.domain.user.dao.UserRepository;
@@ -47,6 +50,7 @@ public class MapService {
     private final S3Service s3Service;
     private final OAuthClientConfig oAuthClientConfig;
     private final FollowRepository followRepository;
+    private final MapUserRoleRepository mapUserRoleRepository;
 
     public List<MapListResponseDTO> getMapList(String searchType, Pageable pageable, String searchWord) {
         switch (searchType) {
@@ -173,7 +177,14 @@ public class MapService {
                 .imageUrl(imageUrl)
                 .user(user)
                 .build();
+
+        MapUserRole mapUserRole = MapUserRole.builder()
+                .role(Role.OWNER)
+                .user(user)
+                .map(map)
+                .build();
         mapRepository.save(map);
+        mapUserRoleRepository.save(mapUserRole);
         mapUserRoleService.addOwner(map.getId(), user.getNickname());
     }
 

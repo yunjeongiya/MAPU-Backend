@@ -35,15 +35,15 @@ public class JwtFilter extends OncePerRequestFilter {
             "/home/keyword",
             "/home/map/keyword",
             "/map/search",
-            "/home/keyword"
+            "/home/keyword",
+            "/map/basic-info/\\d+/view"
     );
     //익명사용자 구분 필요 URL 패턴 리스트
     private final List<String> ANONYMOUS_URL_LIST = List.of(
             "/home",
             "/user/maps",
             "/home/editor",
-            "/map/search",
-            "/map/basic-info/\\d+"
+            "/map/search"
     );
     //GET 메서드만 허용 URL 패턴 리스트
     private final List<String> ONLY_GET_ANONYMOUS_URL_LIST = List.of(
