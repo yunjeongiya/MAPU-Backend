@@ -28,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -164,18 +163,16 @@ public class MapService {
     public void createMap(CreateMapRequestDTO requestDTO, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("유저 없음"));
 
-        String imageUrl = getMapImageUrl(requestDTO.getLatitude(), requestDTO.getLongitude(), requestDTO.getZoomLevel());
-
         Map map = Map.builder()
                 .mapTitle(requestDTO.getMapTitle())
                 .mapDescription(requestDTO.getMapDescription())
                 .address(requestDTO.getAddress())
                 .latitude(requestDTO.getLatitude())
                 .longitude(requestDTO.getLongitude())
+                .imageUrl(requestDTO.getImageUrl())
                 .zoomLevel(requestDTO.getZoomLevel())
                 .publishLink(requestDTO.getPublishLink())
                 .isOnSearch(requestDTO.getIsOnSearch())
-                .imageUrl(imageUrl)
                 .user(user)
                 .build();
 
